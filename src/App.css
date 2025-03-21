@@ -22,6 +22,7 @@
 
 .login-form h2 {
   margin-bottom: 20px;
+  color: black;
 }
 
 .login-form input {
@@ -30,6 +31,16 @@
   margin: 10px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
+  background-color: white; /* Fixes black input field */
+  color: black; /* Ensures text is visible */
+}
+
+.login-form input::placeholder {
+  color: gray; /* Lighter text for better visibility */
+}
+
+.login-form input:focus {
+  outline: 2px solid #007bff; /* Highlight on focus */
 }
 
 .login-form button {
