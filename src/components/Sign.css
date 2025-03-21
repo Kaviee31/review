@@ -1,0 +1,95 @@
+/* Container for the Signup Page */
+.app-container {
+  background-image: url("../assets/background.webp"); /* Move up one folder */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+}
+
+  
+  /* Signup Form */
+  .signup-form {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 350px;
+    width: 100%;
+   
+    text-align: center;
+    font-family: "Poppins", sans-serif;
+  }
+  
+  /* Form Title */
+  .signup-form h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  /* Input Fields */
+  .signup-form input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    background-color: white;
+    color: black;
+  }
+  
+  /* Input Placeholder */
+  .signup-form input::placeholder {
+    color: #888;
+  }
+  
+  /* Focus Effect */
+  .signup-form input:focus {
+    outline: 2px solid #007bff;
+    border-color: #007bff;
+  }
+  
+  /* Signup Button */
+  .signup-form button {
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .signup-form button:hover {
+    background: #0056b3;
+  }
+  
+  /* Error Message */
+  .signup-form p {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  /* Back to Login Link */
+  .signup-form a {
+    display: block;
+    margin-top: 15px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .signup-form a:hover {
+    text-decoration: underline;
+  }
+  
