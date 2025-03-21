@@ -23,6 +23,8 @@ function Signup() {
 
         <label>Enter OTP:</label>
         <input type="text" placeholder="OTP" />
+        <button type="submit">Send OTP</button>
+
 
         <button type="submit">Sign Up</button>
         
