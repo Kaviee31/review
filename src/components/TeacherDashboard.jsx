@@ -1,5 +1,7 @@
+// TeacherDashboard.jsx
 import React, { useState } from 'react';
 import './TeacherDashboard.css';
+import SyllabusDisplay from './SyllabusDisplay';
 
 function TeacherDashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -9,6 +11,7 @@ function TeacherDashboard() {
   const [endDate, setEndDate] = useState('');
   const [syllabus, setSyllabus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSyllabus, setShowSyllabus] = useState(false);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -20,36 +23,35 @@ function TeacherDashboard() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setSyllabus(''); // Clear previous syllabus
+    setSyllabus('');
 
     try {
-      const response = await fetch('http://localhost:3001/api/generate-syllabus', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          courseName,
-          hoursPerWeek,
-          startDate,
-          endDate,
-          // You might send the file data here if needed, but for simplicity, we'll focus on text data.
-        }),
-      });
+        const formData = new FormData();
+        formData.append('courseName', courseName);
+        formData.append('hoursPerWeek', hoursPerWeek);
+        formData.append('startDate', startDate);
+        formData.append('endDate', endDate);
+        formData.append('syllabusFile', selectedFile); // Append the file
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+        const response = await fetch('http://localhost:3001/api/generate-syllabus', {
+            method: 'POST',
+            body: formData, // Send FormData instead of JSON
+        });
 
-      const data = await response.json();
-      setSyllabus(data.syllabus);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setSyllabus(data.syllabus);
+        setShowSyllabus(true);
     } catch (error) {
-      console.error('Error generating syllabus:', error);
-      setSyllabus('Error generating syllabus. Please try again.');
+        console.error('Error generating syllabus:', error);
+        setSyllabus('Error generating syllabus. Please try again.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   return (
     <div className="app-container">
@@ -101,12 +103,7 @@ function TeacherDashboard() {
           </button>
         </form>
 
-        {syllabus && (
-          <div className="syllabus-output">
-            <h3>Generated Syllabus:</h3>
-            <pre>{syllabus}</pre>
-          </div>
-        )}
+        {showSyllabus && <SyllabusDisplay syllabus={syllabus} />}
       </div>
     </div>
   );

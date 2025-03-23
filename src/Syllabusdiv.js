@@ -11,7 +11,7 @@ app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 console.log("API Key from .env:", genAI); // Replace with your API key
-const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro"});
 
 app.post('/api/generate-syllabus', async (req, res) => {
     const { courseName, hoursPerWeek, startDate, endDate } = req.body;
