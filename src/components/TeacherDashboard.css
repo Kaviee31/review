@@ -1,0 +1,71 @@
+.app-container {
+    background: black;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.app-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: 0px 0px 40px 10px green inset;
+    z-index: 0;
+}
+
+.dashboard-content {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 255, 0, 0.5);
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+}
+
+.dashboard-content h1, 
+.dashboard-content h2 {
+    text-align: center;
+    color: white;
+}
+
+.dashboard-content label {
+    margin-top: 10px;
+    align-self: flex-start;
+    color: white;
+}
+
+.dashboard-content input, 
+.dashboard-content select {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #0f0;
+    background: transparent;
+    color: white;
+    border-radius: 5px;
+}
+
+.dashboard-content button {
+    margin-top: 15px;
+    padding: 10px;
+    width: 100%;
+    background-color: #0f0;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.dashboard-content button:hover {
+    background-color: #0b0;
+}
