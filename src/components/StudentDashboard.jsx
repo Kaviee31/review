@@ -1,11 +1,16 @@
-import React from 'react'
+import React from 'react';
+import './StudentDashboard.css';
 
 function StudentDashboard() {
   return (
-    <div>
-     <h1>Welcome, Student!</h1>;
+    <div className="student">
+    
+      <div className="course-container">
+        <p>Full Stack Software Development            -            Dr. Sangeetha</p>
+        <button className="enroll-btn">Enroll</button>
+      </div>
     </div>
-  )
+  );
 }
 
-export default StudentDashboard
+export default StudentDashboard;
