@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import './TeacherDashboard.css';
 import SyllabusDisplay from './SyllabusDisplay';
+import { Link } from "react-router-dom";
+
 
 function TeacherDashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -104,6 +106,11 @@ function TeacherDashboard() {
         </form>
 
         {showSyllabus && <SyllabusDisplay syllabus={syllabus} />}
+      </div>
+      <div className="link-container">
+        <Link to="/teacher-courses" className="view-courses-link">
+          <button className="view-courses-btn">View My Courses</button>
+        </Link>
       </div>
     </div>
   );
