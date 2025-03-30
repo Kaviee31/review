@@ -5,28 +5,41 @@ import { onAuthStateChanged } from "firebase/auth";
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
-  const [teacherName, setTeacherName] = useState("Guest");
+  const [teacherName, setTeacherName] = useState("");
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setTeacherName(user.displayName || user.email);
+        setTeacherName(user.email); // Store the teacher's email correctly
       }
     });
   }, []);
 
-  useEffect(() => {
-    if (teacherName !== "Guest" && teacherName !== "") {
-      axios.get(`http://localhost:5000/teacher-courses/${teacherName}`)
+  const fetchStudents = () => {
+    if (teacherName) {
+      axios
+        .get(`http://localhost:5000/teacher-courses/${teacherName}`)
         .then((res) => setStudents(res.data))
         .catch((err) => console.log(err));
     }
-  }, [teacherName]);
-  
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, [teacherName]); // Fetch data whenever teacherName updates
+
+  // Polling every 5 seconds to keep data updated
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchStudents();
+    }, 5000);
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, []);
 
   return (
     <div>
-      <h2>Enrolled Students for {teacherName}</h2>
+      <h2>Enrolled Students for {teacherName || "Loading..."}</h2>
       <table border="1">
         <thead>
           <tr>
@@ -35,12 +48,18 @@ function TeacherCourses() {
           </tr>
         </thead>
         <tbody>
-          {students.map((student, index) => (
-            <tr key={index}>
-              <td>{student.courseName}</td>
-              <td>{student.studentName}</td>
+          {students.length > 0 ? (
+            students.map((student, index) => (
+              <tr key={index}>
+                <td>{student.courseName}</td>
+                <td>{student.studentName}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="2">No students enrolled yet</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

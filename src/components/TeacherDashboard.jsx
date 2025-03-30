@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import './TeacherDashboard.css';
 import SyllabusDisplay from './SyllabusDisplay';
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 function TeacherDashboard() {
@@ -14,6 +14,8 @@ function TeacherDashboard() {
   const [syllabus, setSyllabus] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSyllabus, setShowSyllabus] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -106,12 +108,19 @@ function TeacherDashboard() {
         </form>
 
         {showSyllabus && <SyllabusDisplay syllabus={syllabus} />}
-      </div>
+      
       <div className="link-container">
-        <Link to="/teacher-courses" className="view-courses-link">
-          <button className="view-courses-btn">View My Courses</button>
-        </Link>
+      <button
+  className="view-courses-btn"
+  onClick={() => {
+    console.log("Button clicked!");
+    navigate("/teacher-courses");
+  }}
+>
+  View My Courses
+</button>
       </div>
+    </div>
     </div>
   );
 }

@@ -24,12 +24,19 @@ function StudentDashboard() {
 
   const handleEnroll = async (courseName, teacherName) => {
     try {
-      await axios.post("http://localhost:5000/enroll", { studentName, courseName, teacherName });
+      await axios.post("http://localhost:5000/enroll", {
+        studentName,
+        courseName,
+        teacherName,
+        teacherEmail: "tsai8004@gmail.com", // Make sure this matches teacher's login
+      });
       alert("Enrolled successfully!");
     } catch (error) {
       alert(error.response?.data?.error || "Error enrolling");
     }
   };
+  
+  
 
   return (
     <div className="student">
