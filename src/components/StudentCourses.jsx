@@ -19,10 +19,15 @@ function StudentCourses() {
     if (studentEmail) {
       axios
         .get(`http://localhost:5000/student-courses/${studentEmail}`)
-        .then((res) => setCourses(res.data))
-        .catch((err) => console.log(err));
+        .then((res) => {
+          console.log("Fetched Student Data:", res.data); // ✅ Debugging
+          setCourses(res.data);
+        })
+        .catch((err) => console.log("Error fetching student data:", err));
     }
   }, [studentEmail]);
+   // Ensure it re-fetches after email update
+  
 
   return (
     <div>

@@ -57,19 +57,29 @@ function TeacherCourses() {
 
   // Function to save all marks at once
   const handleSaveAllMarks = () => {
+    const payload = {
+      students: students.map(student => ({
+        studentEmail: student.email,
+        courseName: student.courseName,
+        Assessment1: student.marks1 || 0,
+        Assessment2: student.marks2 || 0,
+        Assessment3: student.marks3 || 0,
+        Total: student.marks4 || 0,
+      })),
+    };
+  
+    console.log("Sending Marks Data:", payload); // ✅ Debugging
+  
     axios
-      .post("http://localhost:5000/update-marks", {
-        students: students.map(student => ({
-          studentEmail: student.email, // Use student email as ID
-          Assessment1: student.marks1,
-          Assessment2: student.marks2,
-          Assessment3: student.marks3,
-          Total: student.marks4
-        }))
+      .post("http://localhost:5000/update-marks", payload)
+      .then(() => {
+        alert("Marks saved successfully!");
+        console.log("Marks saved in backend!");
       })
-      .then(() => alert("Marks saved for all students successfully!"))
-      .catch((err) => console.log(err));
+      .catch((err) => console.log("Error saving marks:", err));
   };
+  
+  
 
   return (
     <div>

@@ -20,10 +20,16 @@ mongoose.connect(process.env.MONGO_URI)
 // Define Schema
 const enrollmentSchema = new mongoose.Schema({
   studentName: String,
+  studentEmail: String,  // Add student email for identification
   courseName: String,
   teacherName: String,
-  teacherEmail: String,  // Ensure email is stored
+  teacherEmail: String,
+  Assessment1: { type: Number, default: 0 },
+  Assessment2: { type: Number, default: 0 },
+  Assessment3: { type: Number, default: 0 },
+  Total: { type: Number, default: 0 },
 });
+
 
 
 const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
@@ -67,6 +73,38 @@ app.get("/teacher-courses/:teacherEmail", async (req, res) => {
     res.status(500).json({ error: "Error fetching students" });
   }
 });
+
+
+app.post("/update-marks", async (req, res) => {
+  try {
+    const { students } = req.body;
+    console.log("Received Marks Update:", students); // ✅ Debugging
+
+    for (let student of students) {
+      const updatedStudent = await Enrollment.findOneAndUpdate(
+        { studentEmail: student.studentEmail, courseName: student.courseName },
+        {
+          $set: {
+            Assessment1: student.Assessment1,
+            Assessment2: student.Assessment2,
+            Assessment3: student.Assessment3,
+            Total: student.Total,
+          },
+        },
+        { new: true, upsert: true }
+      );
+
+      console.log("Updated Student:", updatedStudent); 
+    }
+
+    res.json({ message: "Marks updated successfully!" });
+  } catch (error) {
+    console.error("Error updating marks:", error);
+    res.status(500).json({ error: "Failed to update marks" });
+  }
+});
+
+
 
 
 const PORT = process.env.PORT || 5000;
