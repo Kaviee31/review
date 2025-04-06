@@ -36,15 +36,17 @@ const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
 
 // API to handle enrollment
 app.post("/enroll", async (req, res) => {
-  const { studentName, courseName, teacherName, teacherEmail } = req.body;
+  const { studentName, studentEmail, courseName, teacherName, teacherEmail } = req.body;
+
 
   try {
-    const existingEnrollment = await Enrollment.findOne({ studentName, courseName });
+    const existingEnrollment = await Enrollment.findOne({ studentEmail, courseName });
     if (existingEnrollment) {
       return res.status(400).json({ error: "Already enrolled!" });
     }
 
-    const newEnrollment = new Enrollment({ studentName, courseName, teacherName, teacherEmail });
+    const newEnrollment = new Enrollment({ studentName, studentEmail, courseName, teacherName, teacherEmail });
+
     await newEnrollment.save();
 
     res.status(200).json({ message: "Enrollment successful!" });
@@ -81,8 +83,9 @@ app.post("/update-marks", async (req, res) => {
     console.log("Received Marks Update:", students); // ✅ Debugging
 
     for (let student of students) {
-      const updatedStudent = await Enrollment.findOneAndUpdate(
-        { studentEmail: student.studentEmail, courseName: student.courseName },
+      const updatedStudent = await  Enrollment.findOneAndUpdate(
+        { studentName: student.studentEmail, courseName: student.courseName }, // 👈 using studentName as email
+      
         {
           $set: {
             Assessment1: student.Assessment1,

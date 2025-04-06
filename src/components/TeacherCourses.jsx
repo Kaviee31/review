@@ -21,13 +21,15 @@ function TeacherCourses() {
         .get(`http://localhost:5000/teacher-courses/${teacherName}`)
         .then((res) => {
           // Initialize marks fields if not set
-          const updatedStudents = res.data.map(student => ({
+          const updatedStudents = res.data.map((student) => ({
             ...student,
             marks1: student.Assessment1 || "",
             marks2: student.Assessment2 || "",
             marks3: student.Assessment3 || "",
             marks4: student.Total || "",
-            extraColumn: student.Contact || ""
+            extraColumn: student.Contact || "",
+            studentEmail: student.studentEmail, // ✅ Ensure studentEmail is preserved
+            courseName: student.courseName,     // ✅ Ensure courseName is preserved
           }));
           setStudents(updatedStudents);
         })
@@ -39,7 +41,6 @@ function TeacherCourses() {
     fetchStudents();
   }, [teacherName]); // Fetch data whenever teacherName updates
 
-  // Polling every 5 seconds to keep data updated
   useEffect(() => {
     const interval = setInterval(() => {
       fetchStudents();
@@ -48,28 +49,27 @@ function TeacherCourses() {
     return () => clearInterval(interval); // Cleanup on component unmount
   }, []);
 
-  // Function to update marks in local state
+  // ✅ Handle local input changes per student row
   const handleMarkChange = (index, field, value) => {
     const updatedStudents = [...students];
     updatedStudents[index][field] = value;
     setStudents(updatedStudents);
   };
 
-  // Function to save all marks at once
   const handleSaveAllMarks = () => {
     const payload = {
-      students: students.map(student => ({
-        studentEmail: student.email,
+      students: students.map((student) => ({
+        studentEmail: student.studentName,
         courseName: student.courseName,
-        Assessment1: student.marks1 || 0,
-        Assessment2: student.marks2 || 0,
-        Assessment3: student.marks3 || 0,
-        Total: student.marks4 || 0,
+        Assessment1: Number(student.marks1) || 0,
+        Assessment2: Number(student.marks2) || 0,
+        Assessment3: Number(student.marks3) || 0,
+        Total: Number(student.marks4) || 0,
       })),
     };
-  
-    console.log("Sending Marks Data:", payload); // ✅ Debugging
-  
+
+    console.log("Sending Marks Data:", payload);
+
     axios
       .post("http://localhost:5000/update-marks", payload)
       .then(() => {
@@ -78,13 +78,12 @@ function TeacherCourses() {
       })
       .catch((err) => console.log("Error saving marks:", err));
   };
-  
-  
 
   return (
     <div>
       <h2>
-        Enrolled Students for {students.length > 0 ? students[0].courseName : "Loading..."}
+        Enrolled Students for{" "}
+        {students.length > 0 ? students[0].courseName : "Loading..."}
       </h2>
 
       <table border="1">
@@ -106,33 +105,41 @@ function TeacherCourses() {
               <tr key={index}>
                 <td>{student.courseName}</td>
                 <td>{student.studentName}</td>
-                <td>{student.email}</td>
+                <td>{student.studentName}</td> {/* ✅ FIXED: Use correct field */}
                 <td>
                   <input
                     type="number"
                     value={student.marks1}
-                    onChange={(e) => handleMarkChange(index, "marks1", e.target.value)}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks1", e.target.value)
+                    }
                   />
                 </td>
                 <td>
                   <input
                     type="number"
                     value={student.marks2}
-                    onChange={(e) => handleMarkChange(index, "marks2", e.target.value)}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks2", e.target.value)
+                    }
                   />
                 </td>
                 <td>
                   <input
                     type="number"
                     value={student.marks3}
-                    onChange={(e) => handleMarkChange(index, "marks3", e.target.value)}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks3", e.target.value)
+                    }
                   />
                 </td>
                 <td>
                   <input
                     type="number"
                     value={student.marks4}
-                    onChange={(e) => handleMarkChange(index, "marks4", e.target.value)}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks4", e.target.value)
+                    }
                   />
                 </td>
                 <td>{student.extraColumn}</td>
@@ -146,7 +153,6 @@ function TeacherCourses() {
         </tbody>
       </table>
 
-      {/* Save All Marks Button */}
       <button onClick={handleSaveAllMarks} style={{ marginTop: "10px" }}>
         Save All Marks
       </button>
