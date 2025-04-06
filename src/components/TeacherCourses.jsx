@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+
+
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
@@ -78,6 +82,40 @@ function TeacherCourses() {
       })
       .catch((err) => console.log("Error saving marks:", err));
   };
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(18);
+    doc.text("Student Marks Report", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+  
+    const tableColumn = ["Course", "Student Name", "Email", "Assessment 1", "Assessment 2", "Assessment 3", "Total"];
+    const tableRows = [];
+  
+    students.forEach(student => {
+      const studentData = [
+        student.courseName,
+        student.studentName,
+        student.studentName, // or student.email if available
+        student.marks1,
+        student.marks2,
+        student.marks3,
+        student.marks4
+      ];
+      tableRows.push(studentData);
+    });
+  
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+  
+    doc.save("Student_Marks_Report.pdf");
+  };
+  
+  
 
   return (
     <div>
@@ -156,6 +194,10 @@ function TeacherCourses() {
       <button onClick={handleSaveAllMarks} style={{ marginTop: "10px" }}>
         Save All Marks
       </button>
+      <button onClick={handleDownloadPDF} style={{ marginTop: "10px", marginLeft: "10px" }}>
+  Download PDF
+</button>
+
     </div>
   );
 }
