@@ -10,6 +10,7 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [profession, setProfession] = useState("Student");
+  const [registerNumber, setRegisterNumber] = useState("");
   const navigate = useNavigate();
 
   const professions = ["Student", "Teacher"];
@@ -19,27 +20,32 @@ function Signup() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      console.log("User created:", user);
-
-      await setDoc(doc(db, "users", user.uid), {
+  
+      const userData = {
         username,
         email,
         profession,
-      });
-
+      };
+  
+      if (profession === "Student") {
+        userData.registerNumber = registerNumber;
+      }
+  
+      await setDoc(doc(db, "users", user.uid), userData);
+  
       alert("User registered successfully!");
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true }); // ✅ Redirect here
     } catch (error) {
       console.error("Error signing up:", error);
       alert(error.message);
     }
   };
+  
 
   return (
     <div className="signup-container">
       <form className="signup-form" onSubmit={handleSubmit}>
-        <h2 style={{ color: "black" }}>Create Account</h2>
+        <h2>Create Account</h2>
 
         <label>Username</label>
         <input
@@ -48,7 +54,6 @@ function Signup() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          style={{ backgroundColor: "#f0e6ff" }}
         />
 
         <label>Email</label>
@@ -58,7 +63,6 @@ function Signup() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ backgroundColor: "#f0e6ff" }}
         />
 
         <label>Password</label>
@@ -68,14 +72,19 @@ function Signup() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ backgroundColor: "#f0e6ff" }}
         />
 
         <label>Profession</label>
-        <select 
-          value={profession} 
-          onChange={(e) => setProfession(e.target.value)}
-          style={{ backgroundColor: "#f0e6ff" }}
+        <select
+          value={profession}
+          onChange={(e) => {
+            const selectedProfession = e.target.value;
+            setProfession(selectedProfession);
+            if (selectedProfession !== "Student") {
+              setRegisterNumber(""); // Clear if not student
+            }
+          }}
+          required
         >
           {professions.map((prof) => (
             <option key={prof} value={prof}>
@@ -83,6 +92,20 @@ function Signup() {
             </option>
           ))}
         </select>
+
+        {/* Register Number only when Student */}
+        {profession === "Student" && (
+          <>
+            <label>Register Number</label>
+            <input
+              type="text"
+              placeholder="Enter your register number"
+              value={registerNumber}
+              onChange={(e) => setRegisterNumber(e.target.value)}
+              required
+            />
+          </>
+        )}
 
         <button type="submit">Register</button>
 
