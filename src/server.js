@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Define Schema
 const enrollmentSchema = new mongoose.Schema({
   studentName: String,
-  studentEmail: String,  // Add student email for identification
+  registerNumber: String, // ✅ replaced studentEmail with registerNumber
   courseName: String,
   teacherName: String,
   teacherEmail: String,
@@ -33,20 +33,22 @@ const enrollmentSchema = new mongoose.Schema({
 
 
 
+
 const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
 
 // API to handle enrollment
 app.post("/enroll", async (req, res) => {
-  const { studentName, studentEmail, courseName, teacherName, teacherEmail } = req.body;
+  const { studentName, registerNumber, courseName, teacherName, teacherEmail } = req.body;
 
 
   try {
-    const existingEnrollment = await Enrollment.findOne({ studentEmail, courseName });
+    const existingEnrollment = await Enrollment.findOne({ registerNumber, courseName });
     if (existingEnrollment) {
       return res.status(400).json({ error: "Already enrolled!" });
     }
 
-    const newEnrollment = new Enrollment({ studentName, studentEmail, courseName, teacherName, teacherEmail });
+    const newEnrollment = new Enrollment({ studentName, registerNumber, courseName, teacherName, teacherEmail });
+
 
     await newEnrollment.save();
 
@@ -58,14 +60,15 @@ app.post("/enroll", async (req, res) => {
   
 
 // API to get enrolled courses for a student
-app.get("/student-courses/:studentName", async (req, res) => {
+app.get("/student-courses/:registerNumber", async (req, res) => {
   try {
-    const courses = await Enrollment.find({ studentName: req.params.studentName });
+    const courses = await Enrollment.find({ registerNumber: req.params.registerNumber });
     res.json(courses);
   } catch (error) {
     res.status(500).json({ error: "Error fetching courses" });
   }
 });
+
 
 // API to get students enrolled in a specific teacher's course
 app.get("/teacher-courses/:teacherEmail", async (req, res) => {
@@ -81,12 +84,11 @@ app.get("/teacher-courses/:teacherEmail", async (req, res) => {
 app.post("/update-marks", async (req, res) => {
   try {
     const { students } = req.body;
-    console.log("Received Marks Update:", students); // ✅ Debugging
+    console.log("Received Marks Update:", students);
 
     for (let student of students) {
-      const updatedStudent = await  Enrollment.findOneAndUpdate(
-        { studentName: student.studentEmail, courseName: student.courseName }, // 👈 using studentName as email
-      
+      const updatedStudent = await Enrollment.findOneAndUpdate(
+        { registerNumber: student.registerNumber, courseName: student.courseName },
         {
           $set: {
             Assessment1: student.Assessment1,
@@ -107,6 +109,7 @@ app.post("/update-marks", async (req, res) => {
     res.status(500).json({ error: "Failed to update marks" });
   }
 });
+
 
 
 

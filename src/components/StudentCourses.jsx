@@ -1,37 +1,54 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 function StudentCourses() {
   const [courses, setCourses] = useState([]);
-  const [studentEmail, setStudentEmail] = useState("");
+  const [registerNumber, setRegisterNumber] = useState("");
+  const [studentName, setStudentName] = useState("");
 
   useEffect(() => {
+    const fetchRegisterNumber = async (user) => {
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setRegisterNumber(data.registerNumber);
+          setStudentName(data.username);
+        }
+      } catch (error) {
+        console.error("Error fetching Firestore data:", error);
+      }
+    };
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setStudentEmail(user.email); // Use email as student ID
+        fetchRegisterNumber(user);
       }
     });
   }, []);
 
   useEffect(() => {
-    if (studentEmail) {
-      axios
-        .get(`http://localhost:5000/student-courses/${studentEmail}`)
-        .then((res) => {
-          console.log("Fetched Student Data:", res.data); // ✅ Debugging
-          setCourses(res.data);
-        })
-        .catch((err) => console.log("Error fetching student data:", err));
-    }
-  }, [studentEmail]);
-   // Ensure it re-fetches after email update
-  
+    const fetchCourses = async () => {
+      if (registerNumber) {
+        try {
+          const response = await axios.get(`http://localhost:5000/student-courses/${registerNumber}`);
+          setCourses(response.data);
+        } catch (error) {
+          console.error("Error fetching student courses:", error);
+        }
+      }
+    };
+
+    fetchCourses();
+  }, [registerNumber]);
 
   return (
     <div>
-      <h2>Enrolled Courses for {studentEmail || "Loading..."}</h2>
+     <h2>Enrolled Courses for: {registerNumber || "Loading..."}</h2>
 
       {courses.length > 0 ? (
         courses.map((course, index) => (
@@ -42,7 +59,7 @@ function StudentCourses() {
                 <tr>
                   <th>Course Name</th>
                   <th>Teacher Name</th>
-                  <th>Student Email</th>
+                  <th>Register Number</th>
                   <th>Assessment 1</th>
                   <th>Assessment 2</th>
                   <th>Assessment 3</th>
@@ -54,12 +71,12 @@ function StudentCourses() {
                 <tr>
                   <td>{course.courseName}</td>
                   <td>{course.teacherName}</td>
-                  <td>{studentEmail}</td>
+                  <td>{registerNumber}</td>
                   <td>{course.Assessment1}</td>
                   <td>{course.Assessment2}</td>
                   <td>{course.Assessment3}</td>
-                  <td>{course.Total }</td>
-                  <td>{course.Contact }</td>
+                  <td>{course.Total}</td>
+                  <td>{course.Contact || "N/A"}</td>
                 </tr>
               </tbody>
             </table>

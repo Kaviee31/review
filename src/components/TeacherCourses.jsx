@@ -32,9 +32,9 @@ function TeacherCourses() {
             marks3: student.Assessment3 || "",
             marks4: student.Total || "",
             extraColumn: student.Contact || "",
-            studentEmail: student.studentEmail, // ✅ Ensure studentEmail is preserved
-            courseName: student.courseName,     // ✅ Ensure courseName is preserved
+            registerNumber: student.registerNumber, // ✅ Add this!
           }));
+          
           setStudents(updatedStudents);
         })
         .catch((err) => console.log(err));
@@ -63,7 +63,7 @@ function TeacherCourses() {
   const handleSaveAllMarks = () => {
     const payload = {
       students: students.map((student) => ({
-        studentEmail: student.studentName,
+        registerNumber: student.registerNumber, // ✅ Correct key for backend to identify student
         courseName: student.courseName,
         Assessment1: Number(student.marks1) || 0,
         Assessment2: Number(student.marks2) || 0,
@@ -71,6 +71,7 @@ function TeacherCourses() {
         Total: Number(student.marks4) || 0,
       })),
     };
+    
 
     console.log("Sending Marks Data:", payload);
 
@@ -127,9 +128,8 @@ function TeacherCourses() {
       <table border="1">
         <thead>
           <tr>
-            <th>Course Name</th>
-            <th>Student Name</th>
-            <th>Student Email</th>
+            
+            <th>Register Number</th>
             <th>Assessment 1</th>
             <th>Assessment 2</th>
             <th>Assessment 3</th>
@@ -138,57 +138,57 @@ function TeacherCourses() {
           </tr>
         </thead>
         <tbody>
-          {students.length > 0 ? (
-            students.map((student, index) => (
-              <tr key={index}>
-                <td>{student.courseName}</td>
-                <td>{student.studentName}</td>
-                <td>{student.studentName}</td> {/* ✅ FIXED: Use correct field */}
-                <td>
-                  <input
-                    type="number"
-                    value={student.marks1}
-                    onChange={(e) =>
-                      handleMarkChange(index, "marks1", e.target.value)
-                    }
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    value={student.marks2}
-                    onChange={(e) =>
-                      handleMarkChange(index, "marks2", e.target.value)
-                    }
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    value={student.marks3}
-                    onChange={(e) =>
-                      handleMarkChange(index, "marks3", e.target.value)
-                    }
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    value={student.marks4}
-                    onChange={(e) =>
-                      handleMarkChange(index, "marks4", e.target.value)
-                    }
-                  />
-                </td>
-                <td>{student.extraColumn}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="8">No students enrolled yet</td>
-            </tr>
-          )}
-        </tbody>
+  {students.length > 0 ? (
+    students.map((student, index) => (
+      <tr key={index}>
+        
+        <td>{student.registerNumber}</td>
+        <td>
+          <input
+            type="number"
+            value={student.marks1}
+            onChange={(e) =>
+              handleMarkChange(index, "marks1", e.target.value)
+            }
+          />
+        </td>
+        <td>
+          <input
+            type="number"
+            value={student.marks2}
+            onChange={(e) =>
+              handleMarkChange(index, "marks2", e.target.value)
+            }
+          />
+        </td>
+        <td>
+          <input
+            type="number"
+            value={student.marks3}
+            onChange={(e) =>
+              handleMarkChange(index, "marks3", e.target.value)
+            }
+          />
+        </td>
+        <td>
+          <input
+            type="number"
+            value={student.marks4}
+            onChange={(e) =>
+              handleMarkChange(index, "marks4", e.target.value)
+            }
+          />
+        </td>
+        <td>{student.extraColumn}</td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="8">No students enrolled yet</td>
+    </tr>
+  )}
+</tbody>
+
       </table>
 
       <button onClick={handleSaveAllMarks} style={{ marginTop: "10px" }}>
