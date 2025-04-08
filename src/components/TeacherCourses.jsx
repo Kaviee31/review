@@ -5,8 +5,6 @@ import { onAuthStateChanged } from "firebase/auth";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-
-
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
   const [teacherName, setTeacherName] = useState("");
@@ -14,7 +12,7 @@ function TeacherCourses() {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setTeacherName(user.email); // Store teacher's email correctly
+        setTeacherName(user.email);
       }
     });
   }, []);
@@ -24,7 +22,6 @@ function TeacherCourses() {
       axios
         .get(`http://localhost:5000/teacher-courses/${teacherName}`)
         .then((res) => {
-          // Initialize marks fields if not set
           const updatedStudents = res.data.map((student) => ({
             ...student,
             marks1: student.Assessment1 || "",
@@ -32,9 +29,9 @@ function TeacherCourses() {
             marks3: student.Assessment3 || "",
             marks4: student.Total || "",
             extraColumn: student.Contact || "",
-            registerNumber: student.registerNumber, // ✅ Add this!
+            registerNumber: student.registerNumber,
           }));
-          
+
           setStudents(updatedStudents);
         })
         .catch((err) => console.log(err));
@@ -43,17 +40,16 @@ function TeacherCourses() {
 
   useEffect(() => {
     fetchStudents();
-  }, [teacherName]); // Fetch data whenever teacherName updates
+  }, [teacherName]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       fetchStudents();
     }, 5000);
 
-    return () => clearInterval(interval); // Cleanup on component unmount
+    return () => clearInterval(interval);
   }, []);
 
-  // ✅ Handle local input changes per student row
   const handleMarkChange = (index, field, value) => {
     const updatedStudents = [...students];
     updatedStudents[index][field] = value;
@@ -63,7 +59,7 @@ function TeacherCourses() {
   const handleSaveAllMarks = () => {
     const payload = {
       students: students.map((student) => ({
-        registerNumber: student.registerNumber, // ✅ Correct key for backend to identify student
+        registerNumber: student.registerNumber,
         courseName: student.courseName,
         Assessment1: Number(student.marks1) || 0,
         Assessment2: Number(student.marks2) || 0,
@@ -71,7 +67,6 @@ function TeacherCourses() {
         Total: Number(student.marks4) || 0,
       })),
     };
-    
 
     console.log("Sending Marks Data:", payload);
 
@@ -83,40 +78,47 @@ function TeacherCourses() {
       })
       .catch((err) => console.log("Error saving marks:", err));
   };
+
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-  
+
     doc.setFontSize(18);
     doc.text("Student Marks Report", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-  
-    const tableColumn = ["Course", "Student Name", "Email", "Assessment 1", "Assessment 2", "Assessment 3", "Total"];
+
+    const tableColumn = [
+      "Course",
+      "Student Name",
+      "Email",
+      "Assessment 1",
+      "Assessment 2",
+      "Assessment 3",
+      "Total",
+    ];
     const tableRows = [];
-  
-    students.forEach(student => {
+
+    students.forEach((student) => {
       const studentData = [
         student.courseName,
         student.studentName,
-        student.studentName, // or student.email if available
+        student.studentName,
         student.marks1,
         student.marks2,
         student.marks3,
-        student.marks4
+        student.marks4,
       ];
       tableRows.push(studentData);
     });
-  
+
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 30,
     });
-  
+
     doc.save("Student_Marks_Report.pdf");
   };
-  
-  
 
   return (
     <div>
@@ -128,7 +130,6 @@ function TeacherCourses() {
       <table border="1">
         <thead>
           <tr>
-            
             <th>Register Number</th>
             <th>Assessment 1</th>
             <th>Assessment 2</th>
@@ -138,66 +139,74 @@ function TeacherCourses() {
           </tr>
         </thead>
         <tbody>
-  {students.length > 0 ? (
-    students.map((student, index) => (
-      <tr key={index}>
-        
-        <td>{student.registerNumber}</td>
-        <td>
-          <input
-            type="number"
-            value={student.marks1}
-            onChange={(e) =>
-              handleMarkChange(index, "marks1", e.target.value)
-            }
-          />
-        </td>
-        <td>
-          <input
-            type="number"
-            value={student.marks2}
-            onChange={(e) =>
-              handleMarkChange(index, "marks2", e.target.value)
-            }
-          />
-        </td>
-        <td>
-          <input
-            type="number"
-            value={student.marks3}
-            onChange={(e) =>
-              handleMarkChange(index, "marks3", e.target.value)
-            }
-          />
-        </td>
-        <td>
-          <input
-            type="number"
-            value={student.marks4}
-            onChange={(e) =>
-              handleMarkChange(index, "marks4", e.target.value)
-            }
-          />
-        </td>
-        <td>{student.extraColumn}</td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="8">No students enrolled yet</td>
-    </tr>
-  )}
-</tbody>
-
+          {students.length > 0 ? (
+            students.map((student, index) => (
+              <tr key={index}>
+                <td>{student.registerNumber}</td>
+                <td>
+                  <input
+                    type="number"
+                    value={student.marks1}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks1", e.target.value)
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={student.marks2}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks2", e.target.value)
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={student.marks3}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks3", e.target.value)
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={student.marks4}
+                    onChange={(e) =>
+                      handleMarkChange(index, "marks4", e.target.value)
+                    }
+                  />
+                </td>
+                <td>
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                    alt="Chat Bubble"
+                    width="20"
+                    style={{ marginRight: "5px", verticalAlign: "middle" }}
+                  />
+                  {student.extraColumn}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="8">No students enrolled yet</td>
+            </tr>
+          )}
+        </tbody>
       </table>
 
       <button onClick={handleSaveAllMarks} style={{ marginTop: "10px" }}>
         Save All Marks
       </button>
-      <button onClick={handleDownloadPDF} style={{ marginTop: "10px", marginLeft: "10px" }}>
-  Download PDF
-</button>
-
+      <button
+        onClick={handleDownloadPDF}
+        style={{ marginTop: "10px", marginLeft: "10px" }}
+      >
+        Download PDF
+      </button>
     </div>
   );
 }

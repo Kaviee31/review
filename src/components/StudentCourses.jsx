@@ -48,7 +48,7 @@ function StudentCourses() {
 
   return (
     <div>
-     <h2>Enrolled Courses for: {registerNumber || "Loading..."}</h2>
+      <h2>Enrolled Courses for: {registerNumber || "Loading..."}</h2>
 
       {courses.length > 0 ? (
         courses.map((course, index) => (
@@ -76,7 +76,15 @@ function StudentCourses() {
                   <td>{course.Assessment2}</td>
                   <td>{course.Assessment3}</td>
                   <td>{course.Total}</td>
-                  <td>{course.Contact || "N/A"}</td>
+                  <td>
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                      alt="Chat Bubble"
+                      width="20"
+                      style={{ marginRight: "5px", verticalAlign: "middle" }}
+                    />
+                    {course.Contact}
+                  </td>
                 </tr>
               </tbody>
             </table>
