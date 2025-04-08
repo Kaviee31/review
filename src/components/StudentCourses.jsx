@@ -3,11 +3,13 @@ import axios from "axios";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import ChatWindow from "./ChatWindow";
 
 function StudentCourses() {
   const [courses, setCourses] = useState([]);
   const [registerNumber, setRegisterNumber] = useState("");
   const [studentName, setStudentName] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState("");
 
   useEffect(() => {
     const fetchRegisterNumber = async (user) => {
@@ -79,11 +81,11 @@ function StudentCourses() {
                   <td>
                     <img
                       src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
-                      alt="Chat Bubble"
+                      alt="Chat"
                       width="20"
-                      style={{ marginRight: "5px", verticalAlign: "middle" }}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setSelectedTeacher(course.teacherName)}
                     />
-                    {course.Contact}
                   </td>
                 </tr>
               </tbody>
@@ -92,6 +94,10 @@ function StudentCourses() {
         ))
       ) : (
         <p>No enrolled courses yet.</p>
+      )}
+
+      {selectedTeacher && (
+        <ChatWindow currentUser={registerNumber} contactUser={selectedTeacher} />
       )}
     </div>
   );

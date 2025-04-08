@@ -1,7 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
-
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyCzr9NLODmhLq-lEbKj3ankOEJ9oXSi5EY",
   authDomain: "chronolearn-423eb.firebaseapp.com",
@@ -17,4 +27,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, doc, setDoc, getDoc };
+export {
+  auth,
+  db,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  where,
+  orderBy
+};

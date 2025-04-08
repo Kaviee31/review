@@ -4,10 +4,14 @@ import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import ChatWindow from "./ChatWindow"; // Adjust path if needed
+
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
   const [teacherName, setTeacherName] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -180,14 +184,15 @@ function TeacherCourses() {
                   />
                 </td>
                 <td>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
-                    alt="Chat Bubble"
-                    width="20"
-                    style={{ marginRight: "5px", verticalAlign: "middle" }}
-                  />
-                  {student.extraColumn}
+                <img
+                src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                alt="Chat Bubble"
+                width="20"
+                style={{ cursor: "pointer", verticalAlign: "middle" }}
+                onClick={() => setSelectedStudent(student.registerNumber)} // handle opening chat
+                />
                 </td>
+
               </tr>
             ))
           ) : (
@@ -207,6 +212,10 @@ function TeacherCourses() {
       >
         Download PDF
       </button>
+      {selectedStudent && (
+  <ChatWindow currentUser={teacherName} contactUser={selectedStudent} />
+)}
+
     </div>
   );
 }
