@@ -1,16 +1,16 @@
 // TeacherDashboard.jsx
 import React, { useState } from 'react';
-import './TeacherDashboard.css';
+import { useNavigate } from 'react-router-dom';
+import { getAuth } from "firebase/auth"; 
 import SyllabusDisplay from './SyllabusDisplay';
-import { useNavigate } from "react-router-dom";
-
+import './TeacherDashboard.css';
 
 function TeacherDashboard() {
-  const [selectedFile, setSelectedFile] = useState(null);
   const [courseName, setCourseName] = useState('');
   const [hoursPerWeek, setHoursPerWeek] = useState(0);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [syllabus, setSyllabus] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSyllabus, setShowSyllabus] = useState(false);
@@ -30,32 +30,42 @@ function TeacherDashboard() {
     setSyllabus('');
 
     try {
-        const formData = new FormData();
-        formData.append('courseName', courseName);
-        formData.append('hoursPerWeek', hoursPerWeek);
-        formData.append('startDate', startDate);
-        formData.append('endDate', endDate);
-        formData.append('syllabusFile', selectedFile); // Append the file
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) throw new Error("User not authenticated");
 
-        const response = await fetch('http://localhost:3001/api/generate-syllabus', {
-            method: 'POST',
-            body: formData, // Send FormData instead of JSON
-        });
+      const token = await user.getIdToken();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      const formData = new FormData();
+      formData.append('teacherId', user.uid);
+      formData.append('courseName', courseName);
+      formData.append('hoursPerWeek', hoursPerWeek);
+      formData.append('startDate', startDate);
+      formData.append('endDate', endDate);
+      if (selectedFile) {
+        formData.append('syllabusFile', selectedFile);
+      }
 
-        const data = await response.json();
-        setSyllabus(data.syllabus);
-        setShowSyllabus(true);
+      const response = await fetch("http://localhost:3001/api/study-plan/generate", {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+      const data = await response.json();
+      setSyllabus(data.syllabus);
+      setShowSyllabus(true);
     } catch (error) {
-        console.error('Error generating syllabus:', error);
-        setSyllabus('Error generating syllabus. Please try again.');
+      console.error('Error generating syllabus:', error);
+      setSyllabus('Error generating syllabus. Please try again.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   return (
     <div className="app-container">
@@ -71,13 +81,16 @@ function TeacherDashboard() {
             required
           />
 
-          <label>Enter Number of Hours you can Spend Per Week:</label>
+          <label>Enter Number of Hours per Week:</label>
           <input
             type="number"
             placeholder="Hours"
             min="1"
-            value={hoursPerWeek}
-            onChange={(e) => setHoursPerWeek(parseInt(e.target.value))}
+            value={hoursPerWeek || ""}
+            onChange={(e) => {
+              const val = e.target.value ? parseInt(e.target.value) : "";
+              setHoursPerWeek(val);
+            }}
             required
           />
 
@@ -108,19 +121,16 @@ function TeacherDashboard() {
         </form>
 
         {showSyllabus && <SyllabusDisplay syllabus={syllabus} />}
-      
-      <div className="link-container">
-      <button
-  className="view-courses-btn"
-  onClick={() => {
-    console.log("Button clicked!");
-    navigate("/teacher-courses");
-  }}
->
-  View My Courses
-</button>
+
+        <div className="link-container">
+          <button
+            className="view-courses-btn"
+            onClick={() => navigate("/teacher-courses")}
+          >
+            View My Courses
+          </button>
+        </div>
       </div>
-    </div>
     </div>
   );
 }
