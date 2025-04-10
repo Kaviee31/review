@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import fetch from 'node-fetch';
+import studyPlanRoutes from "./routes/studyPlan.js";
+
 
 
 // Load environment variables
@@ -12,6 +15,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use("/api/study-plan", studyPlanRoutes);
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected Successfully"))
@@ -111,8 +115,108 @@ app.post("/update-marks", async (req, res) => {
 });
 
 
+// app.post("/api/study-plan/generate", async (req, res) => {
+//   const { courseName, hoursPerWeek, startDate, endDate, syllabus } = req.body;
+
+//   if (!syllabus || !hoursPerWeek || !startDate || !endDate) {
+//     return res.status(400).json({ error: "Missing required fields" });
+//   }
+
+//   try {
+//     const prompt = `
+//       You are a study planner bot. Given the course syllabus and time frame, generate a weekly study plan.
+
+//       Course: ${courseName}
+//       Study hours per week: ${hoursPerWeek}
+//       Duration: ${startDate} to ${endDate}
+
+//       Syllabus:
+//       ${syllabus}
+
+//       Format the response as a week-wise plan with clearly structured topics.
+//     `;
+
+//     const response = await openai.createChatCompletion({
+//       model: "gpt-3.5-turbo",
+//       messages: [{ role: "user", content: prompt }],
+//     });
+
+//     const studyPlan = response.data.choices[0].message.content;
+
+//     res.json({ syllabus: studyPlan });
+//   } catch (error) {
+//     console.error("OpenAI Error:", error.message);
+//     res.status(500).json({ error: "Failed to generate study plan" });
+//   }
+// });
+
+// app.post("/api/study-plan/generate", async (req, res) => {
+//   const { syllabus, courseName, hoursPerWeek, startDate, endDate } = req.body;
+
+//   const prompt = `Create a detailed weekly study plan for the course "${courseName}" based on the following syllabus: ${syllabus}. The student can study ${hoursPerWeek} hours per week from ${startDate} to ${endDate}.`;
+
+//   try {
+//     const response = await axios.post(
+//       "https://api-inference.huggingface.co/models/google/flan-t5-base", // or another model
+//       { inputs: prompt },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${process.env.HF_API_KEY}`,
+//         },
+//       }
+//     );
+
+//     const result = response.data;
+//     const plan = result?.[0]?.generated_text || "No response generated.";
+//     res.json({ syllabus: plan });
+//   } catch (err) {
+//     console.error("Error calling Hugging Face API:", err.response?.data || err.message);
+//     res.status(500).json({ error: "Failed to generate syllabus." });
+//   }
+// });
 
 
+app.post("/api/study-plan/generate", async (req, res) => {
+  const { syllabus, courseName, hoursPerWeek, startDate, endDate } = req.body;
+
+  if (!syllabus || !courseName || !startDate || !endDate || !hoursPerWeek) {
+    return res.status(400).json({ error: "Missing fields in request" });
+  }
+
+  const prompt = `
+  Create a detailed weekly study plan based on the following:
+  - Course Name: ${courseName}
+  - Hours per Week: ${hoursPerWeek}
+  - Duration: From ${startDate} to ${endDate}
+  - Syllabus: ${syllabus}
+  Format it in a readable weekly breakdown.
+  `;
+
+  try {
+    const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1", {
+      method: "POST",
+      headers: {
+        Authorization:  `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+         // 🔁 Replace this
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ inputs: prompt }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return res.status(response.status).json({ error: error.error || "Model error" });
+    }
+
+    const result = await response.json();
+    const generatedPlan = result[0]?.generated_text || "No output from model.";
+
+    res.json({ syllabus: generatedPlan });
+  } catch (error) {
+    console.error("Hugging Face API error:", error);
+    res.status(500).json({ error: "Failed to generate study plan" });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

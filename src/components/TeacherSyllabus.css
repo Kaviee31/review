@@ -1,0 +1,27 @@
+.syllabus-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .study-plan {
+    margin-top: 20px;
+    font-size: 16px;
+    white-space: pre-line; /* To preserve line breaks in the generated study plan */
+  }
+  
+  .syllabus-details {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    padding: 5px;
+  }
+  

@@ -1,9 +1,9 @@
-// TeacherDashboard.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth"; 
 import SyllabusDisplay from './SyllabusDisplay';
 import './TeacherDashboard.css';
+import { generateStudyPlan } from '../api/generateStudyPlan';
 
 function TeacherDashboard() {
   const [courseName, setCourseName] = useState('');
@@ -23,42 +23,54 @@ function TeacherDashboard() {
       setSelectedFile(file);
     }
   };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setSyllabus('');
-
+    setShowSyllabus(false);
+  
     try {
       const auth = getAuth();
       const user = auth.currentUser;
       if (!user) throw new Error("User not authenticated");
-
+  
       const token = await user.getIdToken();
+  
+      // Create a more structured and clear custom prompt
+      const customPrompt = `
+        Please create a detailed study plan for the course "${courseName}", which runs from ${startDate} to ${endDate}.
+        The course will consist of ${hoursPerWeek} hours of study per week.
+        The syllabus topics are as follows:
+        ${syllabus}.
+        
+        The study plan should include:
+        1. A breakdown of the topics to be covered by week.
+        2. Recommended study methods or tips for each topic.
+        3. How to balance the topics over the available weeks.
+        4. Suggested assignments or exercises to reinforce learning.
+        5. Any additional resources or study tools to help with understanding.
+  
+        Be sure to distribute the hours evenly across the weeks and provide guidance on managing study time effectively.
+      `;
+  
+      // Use the generateStudyPlan function for the custom prompt
+      const studyPlan = await generateStudyPlan(customPrompt); // pass custom prompt
+      setSyllabus(studyPlan);
 
-      const formData = new FormData();
-      formData.append('teacherId', user.uid);
-      formData.append('courseName', courseName);
-      formData.append('hoursPerWeek', hoursPerWeek);
-      formData.append('startDate', startDate);
-      formData.append('endDate', endDate);
-      if (selectedFile) {
-        formData.append('syllabusFile', selectedFile);
-      }
-
-      const response = await fetch("http://localhost:3001/api/study-plan/generate", {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
+      // Navigate to TeacherSyllabus page and pass the data
+      navigate('/teacher-syllabus', {
+        state: {
+          prompt: customPrompt,
+          formData: {
+            course: courseName,
+            startDate,
+            endDate,
+            hoursPerWeek,
+            syllabus,
+            studyPlan,
+          },
         },
-        body: formData
       });
-
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-      const data = await response.json();
-      setSyllabus(data.syllabus);
-      setShowSyllabus(true);
+  
     } catch (error) {
       console.error('Error generating syllabus:', error);
       setSyllabus('Error generating syllabus. Please try again.');
@@ -66,7 +78,8 @@ function TeacherDashboard() {
       setLoading(false);
     }
   };
-
+  
+  
   return (
     <div className="app-container">
       <div className="dashboard-content">
@@ -110,10 +123,14 @@ function TeacherDashboard() {
             required
           />
 
-          <label>Upload Course Material (PDF or JPG only):</label>
-          <input type="file" accept=".pdf, .jpg" onChange={handleFileChange} />
-
-          {selectedFile && <p>Selected File: {selectedFile.name}</p>}
+          <label>Enter Syllabus Content:</label>
+          <textarea
+            rows="5"
+            placeholder="Enter the syllabus topics..."
+            value={syllabus}
+            onChange={(e) => setSyllabus(e.target.value)}
+            required
+          />
 
           <button type="submit" disabled={loading}>
             {loading ? 'Generating...' : 'Submit'}

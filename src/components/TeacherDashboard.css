@@ -150,3 +150,27 @@
         max-height: 95vh;
     }
 }
+
+.dashboard-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+    min-height: 100px;
+    transition: all 0.3s ease-in-out;
+}
+
+.dashboard-content textarea::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard-content textarea:focus {
+    border-color: #00c3ff;
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 195, 255, 0.6);
+}
