@@ -146,7 +146,15 @@ function TeacherDashboard() {
           >
             View My Courses
           </button>
+
+          <button
+            className="view-courses-btn"
+            onClick={() => navigate("/available-intern")}
+          >
+              View Internships
+          </button>
         </div>
+        
       </div>
     </div>
   );

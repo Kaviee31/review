@@ -6,6 +6,8 @@ import StudentDashboard from "./components/StudentDashboard";
 import StudentCourses from "./components/StudentCourses";
 import TeacherCourses from "./components/TeacherCourses";
 import TeacherSyllabus from './components/TeacherSyllabus';
+import Alumni from './components/Alumni';
+import AvailableIntern from "./components/AvailableIntern";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/student-courses" element={<StudentCourses />} />
         <Route path="/teacher-courses" element={<TeacherCourses />} />
         <Route path="/teacher-syllabus" element={<TeacherSyllabus/>} />
+        <Route path="/alumni" element={<Alumni />} />
+        <Route path="/available-intern" element={<AvailableIntern />} />
       </Routes>
     </Router>
   );

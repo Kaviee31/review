@@ -20,6 +20,7 @@ function ChatWindow({ currentUser, contactUser }) {
 
     const messagesRef = collection(db, "messages");
 
+    // Query messages where currentUser is a participant
     const q = query(
       messagesRef,
       where("participants", "array-contains", currentUser),
@@ -46,21 +47,22 @@ function ChatWindow({ currentUser, contactUser }) {
   }, [messages]);
 
   const handleSend = async () => {
-    console.log("Sending message:", newMessage);
     if (newMessage.trim() === "") return;
-
+  
     const messagesRef = collection(db, "messages");
-
+  
     await addDoc(messagesRef, {
       sender: currentUser,
       receiver: contactUser,
       text: newMessage.trim(),
       timestamp: serverTimestamp(),
-      participants: [currentUser, contactUser],
+      participants: [currentUser, contactUser].sort(), // 🔑 SORTED for consistency
+      chatId: [currentUser, contactUser].sort().join("_"), // 🔑 for querying
     });
-
+  
     setNewMessage("");
   };
+  
 
   return (
     <div style={styles.chatBox}>

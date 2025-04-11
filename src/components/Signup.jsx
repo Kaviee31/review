@@ -13,7 +13,7 @@ function Signup() {
   const [registerNumber, setRegisterNumber] = useState("");
   const navigate = useNavigate();
 
-  const professions = ["Student", "Teacher"];
+  const professions = ["Student", "Teacher", "Alumni"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -25,10 +25,12 @@ function Login() {
         // Redirect based on profession
         if (userData.profession === "Teacher") {
           navigate("/teacher-dashboard");
+        } else if (userData.profession === "Alumni") {
+          navigate("/alumni");
         } else {
           navigate("/student-dashboard");
         }
-      } else {
+        } else {
         alert("User data not found.");
       }
     } catch (error) {
