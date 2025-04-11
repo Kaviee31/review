@@ -10,6 +10,7 @@
     padding: 10px; /* for safety on small screens */
     box-sizing: border-box;
     overflow: hidden;
+    padding-left: 220px;
 }
 
 /* Glassmorphism background overlay */
@@ -108,31 +109,6 @@
     transform: scale(1.05);
 }
 
-/* View Courses Button Styling */
-.link-container {
-    margin-top: 20px;
-    width: 100%;
-}
-
-.view-courses-btn {
-    background: linear-gradient(135deg, #ff8c00, #ff4d4d);
-    color: white;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    font-size: 15px;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 4px 10px rgba(255, 77, 77, 0.4);
-}
-
-.view-courses-btn:hover {
-    background: linear-gradient(135deg, #ff4d4d, #ff8c00);
-    transform: scale(1.05);
-}
-
 /* Scrollbar for overflow */
 .dashboard-content::-webkit-scrollbar {
     width: 6px;
@@ -173,4 +149,53 @@
     border-color: #00c3ff;
     outline: none;
     box-shadow: 0 0 10px rgba(0, 195, 255, 0.6);
+}
+
+
+.teacher-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100vh;
+    background: linear-gradient(to bottom, rgba(0, 123, 255, 0.3), rgba(0, 60, 130, 0.4));
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+.sidebar-title {
+    font-size: 28px;
+    color: white;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.sidebar-links {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.sidebar-links button {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    font-size: 16px;
+    padding: 10px 15px;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.sidebar-links button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
 }

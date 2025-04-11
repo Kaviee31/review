@@ -81,7 +81,18 @@ function TeacherDashboard() {
   
   
   return (
+    
     <div className="app-container">
+      <nav className="teacher-sidebar">
+  <div className="sidebar-title">📘</div>
+  <div className="sidebar-links">
+    <button onClick={() => navigate("/teacher-courses")}>My Courses</button>
+    <button onClick={() => navigate("/available-intern")}>Internships</button>
+  </div>
+</nav>
+
+
+
       <div className="dashboard-content">
         <h2>Plan Your Schedule</h2>
         <form onSubmit={handleSubmit}>
@@ -139,21 +150,7 @@ function TeacherDashboard() {
 
         {showSyllabus && <SyllabusDisplay syllabus={syllabus} />}
 
-        <div className="link-container">
-          <button
-            className="view-courses-btn"
-            onClick={() => navigate("/teacher-courses")}
-          >
-            View My Courses
-          </button>
-
-          <button
-            className="view-courses-btn"
-            onClick={() => navigate("/available-intern")}
-          >
-              View Internships
-          </button>
-        </div>
+        
         
       </div>
     </div>
