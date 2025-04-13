@@ -78,6 +78,15 @@ function TeacherDashboard() {
       setLoading(false);
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigate("/"); // Redirect to the home or login page after logout
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
   
   
   return (
@@ -86,8 +95,10 @@ function TeacherDashboard() {
       <nav className="teacher-sidebar">
   <div className="sidebar-title">📘</div>
   <div className="sidebar-links">
-    <button onClick={() => navigate("/teacher-courses")}>My Courses</button>
+  <button onClick={() => navigate("/student-dashboard")}>Dashboard</button>
+    <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
     <button onClick={() => navigate("/available-intern")}>Internships</button>
+    <button onClick={handleLogout}>Logout</button>
   </div>
 </nav>
 
