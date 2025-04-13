@@ -5,26 +5,25 @@ import { onAuthStateChanged } from "firebase/auth";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ChatWindow from "./ChatWindow"; // Adjust path if needed
-
+import * as XLSX from "xlsx";
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
-  const [teacherName, setTeacherName] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState("");
-
+  const [teacherEmail, setTeacherEmail] = useState("");
+  const [selectedStudentRegisterNumber, setSelectedStudentRegisterNumber] = useState(null); // Changed to registerNumber
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setTeacherName(user.email);
+        setTeacherEmail(user.email);
       }
     });
   }, []);
 
   const fetchStudents = () => {
-    if (teacherName) {
+    if (teacherEmail) {
       axios
-        .get(`http://localhost:5000/teacher-courses/${teacherName}`)
+        .get(`http://localhost:5000/teacher-courses/${teacherEmail}`)
         .then((res) => {
           const updatedStudents = res.data.map((student) => ({
             ...student,
@@ -35,7 +34,6 @@ function TeacherCourses() {
             extraColumn: student.Contact || "",
             registerNumber: student.registerNumber,
           }));
-
           setStudents(updatedStudents);
         })
         .catch((err) => console.log(err));
@@ -44,13 +42,12 @@ function TeacherCourses() {
 
   useEffect(() => {
     fetchStudents();
-  }, [teacherName]);
+  }, [teacherEmail]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       fetchStudents();
     }, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -71,9 +68,7 @@ function TeacherCourses() {
         Total: Number(student.marks4) || 0,
       })),
     };
-
     console.log("Sending Marks Data:", payload);
-
     axios
       .post("http://localhost:5000/update-marks", payload)
       .then(() => {
@@ -85,12 +80,10 @@ function TeacherCourses() {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-
     doc.setFontSize(18);
     doc.text("Student Marks Report", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-
     const tableColumn = [
       "Course",
       "Student Name",
@@ -101,12 +94,11 @@ function TeacherCourses() {
       "Total",
     ];
     const tableRows = [];
-
     students.forEach((student) => {
       const studentData = [
         student.courseName,
         student.studentName,
-        student.studentName,
+        student.studentName, // Assuming studentName can be used as a placeholder if email isn't directly available here
         student.marks1,
         student.marks2,
         student.marks3,
@@ -114,14 +106,28 @@ function TeacherCourses() {
       ];
       tableRows.push(studentData);
     });
-
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 30,
     });
-
     doc.save("Student_Marks_Report.pdf");
+  };
+
+  const handleDownloadSpreadsheet = () => {
+    const worksheet = XLSX.utils.json_to_sheet(students.map(student => ({
+      "Register Number": student.registerNumber,
+      "Assessment 1": student.marks1,
+      "Assessment 2": student.marks2,
+      "Assessment 3": student.marks3,
+      "Total": student.marks4,
+    })));
+    
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Student Marks");
+
+    // Save the workbook as an Excel file
+    XLSX.writeFile(workbook, "Student_Marks_Report.xlsx");
   };
 
   return (
@@ -184,15 +190,14 @@ function TeacherCourses() {
                   />
                 </td>
                 <td>
-                <img
-                src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
-                alt="Chat Bubble"
-                width="20"
-                style={{ cursor: "pointer", verticalAlign: "middle" }}
-                onClick={() => setSelectedStudent(student.registerNumber)} // handle opening chat
-                />
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                    alt="Chat Bubble"
+                    width="20"
+                    style={{ cursor: "pointer", verticalAlign: "middle" }}
+                    onClick={() => setSelectedStudentRegisterNumber(student.registerNumber)} // Use student's registerNumber
+                  />
                 </td>
-
               </tr>
             ))
           ) : (
@@ -212,10 +217,15 @@ function TeacherCourses() {
       >
         Download PDF
       </button>
-      {selectedStudent && (
-  <ChatWindow currentUser={teacherName} contactUser={selectedStudent} />
-)}
-
+      <button
+        onClick={handleDownloadSpreadsheet}
+        style={{ marginTop: "10px", marginLeft: "10px" }}
+      >
+        Download ExcelSheet
+      </button>
+      {selectedStudentRegisterNumber && (
+        <ChatWindow currentUser={teacherEmail} contactUser={selectedStudentRegisterNumber} />
+      )}
     </div>
   );
 }

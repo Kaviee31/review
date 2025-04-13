@@ -61,7 +61,7 @@ app.post("/enroll", async (req, res) => {
     res.status(500).json({ error: "Failed to enroll" });
   }
 });
-  
+
 
 // API to get enrolled courses for a student
 app.get("/student-courses/:registerNumber", async (req, res) => {
@@ -104,7 +104,7 @@ app.post("/update-marks", async (req, res) => {
         { new: true, upsert: true }
       );
 
-      console.log("Updated Student:", updatedStudent); 
+      console.log("Updated Student:", updatedStudent);
     }
 
     res.json({ message: "Marks updated successfully!" });
@@ -196,8 +196,8 @@ app.post("/api/study-plan/generate", async (req, res) => {
     const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1", {
       method: "POST",
       headers: {
-        Authorization:  `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-         // 🔁 Replace this
+        Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+        // 🔁 Replace this
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ inputs: prompt }),

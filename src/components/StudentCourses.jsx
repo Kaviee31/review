@@ -9,7 +9,7 @@ function StudentCourses() {
   const [courses, setCourses] = useState([]);
   const [registerNumber, setRegisterNumber] = useState("");
   const [studentName, setStudentName] = useState("");
-  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [selectedTeacherEmail, setSelectedTeacherEmail] = useState(null); // Changed to email
 
   useEffect(() => {
     const fetchRegisterNumber = async (user) => {
@@ -84,7 +84,7 @@ function StudentCourses() {
                       alt="Chat"
                       width="20"
                       style={{ cursor: "pointer" }}
-                      onClick={() => setSelectedTeacher(course.teacherName)}
+                      onClick={() => setSelectedTeacherEmail(course.teacherEmail)} // Use teacher's email
                     />
                   </td>
                 </tr>
@@ -96,8 +96,8 @@ function StudentCourses() {
         <p>No enrolled courses yet.</p>
       )}
 
-      {selectedTeacher && (
-        <ChatWindow currentUser={registerNumber} contactUser={selectedTeacher} />
+      {selectedTeacherEmail && (
+        <ChatWindow currentUser={registerNumber} contactUser={selectedTeacherEmail} />
       )}
     </div>
   );

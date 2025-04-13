@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  where,
-  orderBy,
-  serverTimestamp,
-} from "firebase/firestore";
 import { db } from "../firebase";
+import { collection, query, orderBy, onSnapshot, addDoc, where } from "firebase/firestore";
 
 function ChatWindow({ currentUser, contactUser }) {
   const [messages, setMessages] = useState([]);
@@ -18,137 +10,80 @@ function ChatWindow({ currentUser, contactUser }) {
   useEffect(() => {
     if (!currentUser || !contactUser) return;
 
-    const messagesRef = collection(db, "messages");
+    const chatKey = currentUser < contactUser
+      ? `${currentUser}_${contactUser}`
+      : `${contactUser}_${currentUser}`;
 
-    // Query messages where currentUser is a participant
-    const q = query(
-      messagesRef,
-      where("participants", "array-contains", currentUser),
-      orderBy("timestamp", "asc")
-    );
+    const messagesRef = collection(db, "chats", chatKey, "messages");
+    const q = query(messagesRef, orderBy("timestamp"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const filteredMessages = snapshot.docs
-        .map((doc) => doc.data())
-        .filter(
-          (msg) =>
-            (msg.sender === currentUser && msg.receiver === contactUser) ||
-            (msg.sender === contactUser && msg.receiver === currentUser)
-        );
-
-      setMessages(filteredMessages);
+      const messagesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setMessages(messagesData);
+      // Scroll to the latest message
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, [currentUser, contactUser]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSend = async () => {
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
     if (newMessage.trim() === "") return;
-  
-    const messagesRef = collection(db, "messages");
-  
+
+    const chatKey = currentUser < contactUser
+      ? `${currentUser}_${contactUser}`
+      : `${contactUser}_${currentUser}`;
+
+    const messagesRef = collection(db, "chats", chatKey, "messages");
     await addDoc(messagesRef, {
-      sender: currentUser,
-      receiver: contactUser,
-      text: newMessage.trim(),
-      timestamp: serverTimestamp(),
-      participants: [currentUser, contactUser].sort(), // 🔑 SORTED for consistency
-      chatId: [currentUser, contactUser].sort().join("_"), // 🔑 for querying
+      senderId: currentUser,
+      receiverId: contactUser,
+      message: newMessage,
+      timestamp: new Date(),
     });
-  
     setNewMessage("");
   };
-  
 
   return (
-    <div style={styles.chatBox}>
-      <h4>Chat with {contactUser}</h4>
-      <div style={styles.messagesContainer}>
-        {messages.map((msg, index) => (
+    <div style={{ border: "1px solid #ccc", borderRadius: "5px", padding: "10px", margin: "10px", maxHeight: "300px", overflowY: "auto" }}>
+      <h3>Chat with {contactUser}</h3>
+      <div style={{ marginBottom: "10px" }}>
+        {messages.map((msg) => (
           <div
-            key={index}
+            key={msg.id}
             style={{
-              ...styles.message,
-              alignSelf: msg.sender === currentUser ? "flex-end" : "flex-start",
-              backgroundColor:
-                msg.sender === currentUser ? "#dcf8c6" : "#f1f0f0",
+              padding: "8px",
+              borderRadius: "5px",
+              marginBottom: "5px",
+              backgroundColor: msg.senderId === currentUser ? "#e0f7fa" : "#f5f5f5",
+              textAlign: msg.senderId === currentUser ? "right" : "left",
             }}
           >
-            {msg.text}
+            <strong>{msg.senderId === currentUser ? "You" : msg.senderId}:</strong> {msg.message}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <div style={styles.inputContainer}>
+      <form onSubmit={handleSendMessage} style={{ display: "flex" }}>
         <input
           type="text"
-          placeholder="Type a message"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          style={styles.input}
+          placeholder="Type your message..."
+          style={{ flexGrow: 1, padding: "8px", borderRadius: "3px", border: "1px solid #ddd" }}
         />
-        <button onClick={handleSend} style={styles.sendBtn}>
+        <button type="submit" style={{ padding: "8px 12px", marginLeft: "10px", borderRadius: "3px", border: "none", backgroundColor: "#007bff", color: "white", cursor: "pointer" }}>
           Send
         </button>
-      </div>
+      </form>
     </div>
   );
 }
 
 export default ChatWindow;
-
-const styles = {
-  chatBox: {
-    border: "1px solid #ccc",
-    padding: "10px",
-    width: "300px",
-    height: "400px",
-    display: "flex",
-    flexDirection: "column",
-    backgroundColor: "#fff",
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
-    boxShadow: "0px 0px 10px rgba(0,0,0,0.1)",
-    zIndex: 1000,
-  },
-  messagesContainer: {
-    flex: 1,
-    overflowY: "auto",
-    padding: "10px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-    backgroundColor: "#fafafa",
-    borderRadius: "5px",
-    marginBottom: "10px",
-  },
-  message: {
-    padding: "8px 12px",
-    borderRadius: "15px",
-    maxWidth: "70%",
-    wordBreak: "break-word",
-  },
-  inputContainer: {
-    display: "flex",
-  },
-  input: {
-    flex: 1,
-    padding: "8px",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-  },
-  sendBtn: {
-    marginLeft: "8px",
-    padding: "8px 12px",
-    backgroundColor: "#2196f3",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-  },
-};
