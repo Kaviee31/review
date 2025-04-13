@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot, addDoc, where } from "firebase/firestore";
 
-function ChatWindow({ currentUser, contactUser }) {
+
+function ChatWindow({ currentUser, contactUser, onClose }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
@@ -51,9 +52,26 @@ function ChatWindow({ currentUser, contactUser }) {
   };
 
   return (
-    <div style={{ border: "1px solid #ccc", borderRadius: "5px", padding: "10px", margin: "10px", maxHeight: "300px", overflowY: "auto" }}>
-      <h3>Chat with {contactUser}</h3>
-      <div style={{ marginBottom: "10px" }}>
+    <div style={{
+      position: "fixed",
+      bottom: "80px",
+      right: "20px",
+      border: "1px solid #ccc",
+      borderRadius: "5px",
+      padding: "10px",
+      margin: "10px",
+      maxHeight: "300px",
+      width: "300px",
+      backgroundColor: "white",
+      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+        <h3>Chat with {contactUser}</h3>
+        <button onClick={onClose} style={{ background: "none", border: "1px solid black", cursor: "pointer", fontSize: "16px", color: "black" }}>
+  Close
+</button>
+      </div>
+      <div style={{ marginBottom: "10px", maxHeight: "200px", overflowY: "auto" }}>
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -63,6 +81,7 @@ function ChatWindow({ currentUser, contactUser }) {
               marginBottom: "5px",
               backgroundColor: msg.senderId === currentUser ? "#e0f7fa" : "#f5f5f5",
               textAlign: msg.senderId === currentUser ? "right" : "left",
+              wordBreak: "break-word",
             }}
           >
             <strong>{msg.senderId === currentUser ? "You" : msg.senderId}:</strong> {msg.message}

@@ -47,7 +47,9 @@ function StudentCourses() {
 
     fetchCourses();
   }, [registerNumber]);
-
+  const handleCloseChat = () => {
+    setSelectedTeacherEmail(null);
+  };
   return (
     <div>
       <h2>Enrolled Courses for: {registerNumber || "Loading..."}</h2>
@@ -96,8 +98,12 @@ function StudentCourses() {
         <p>No enrolled courses yet.</p>
       )}
 
-      {selectedTeacherEmail && (
-        <ChatWindow currentUser={registerNumber} contactUser={selectedTeacherEmail} />
+{selectedTeacherEmail && (
+        <ChatWindow
+          currentUser={registerNumber}
+          contactUser={selectedTeacherEmail}
+          onClose={handleCloseChat}
+        />
       )}
     </div>
   );

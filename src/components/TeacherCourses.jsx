@@ -51,6 +51,9 @@ function TeacherCourses() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleCloseChat = () => {
+    setSelectedStudentRegisterNumber(null);
+  };
   const handleMarkChange = (index, field, value) => {
     const updatedStudents = [...students];
     updatedStudents[index][field] = value;
@@ -224,7 +227,11 @@ function TeacherCourses() {
         Download ExcelSheet
       </button>
       {selectedStudentRegisterNumber && (
-        <ChatWindow currentUser={teacherEmail} contactUser={selectedStudentRegisterNumber} />
+        <ChatWindow
+          currentUser={teacherEmail}
+          contactUser={selectedStudentRegisterNumber}
+          onClose={handleCloseChat}
+        />
       )}
     </div>
   );
