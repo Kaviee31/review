@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebase"; // Make sure this is the correct path
+import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
-
+import "./AvailableIntern.css"; // <-- Add this line
 
 function AvailableIntern() {
   const [internships, setInternships] = useState([]);
@@ -22,30 +22,29 @@ function AvailableIntern() {
         console.error("Error fetching internships:", error);
       }
     };
-  
+
     fetchInternships();
   }, []);
-  
 
   return (
     <div className="internships-container">
-      <h2>Available Internships</h2>
+      <h2>✨ Available Internships</h2>
       {internships.length === 0 ? (
-        <p>No internships available at the moment.</p>
+        <p className="empty">No internships available at the moment.</p>
       ) : (
-        <ul>
+        <div className="intern-grid">
           {internships.map((intern) => (
-            <li key={intern.id} className="intern-card">
-              <h3>{intern.role} at {intern.company}</h3>
-              <p><strong>Name:</strong> {intern.name}</p>
-              <p><strong>Designation:</strong> {intern.designation}</p>
+            <div key={intern.id} className="intern-card">
+              <h3>{intern.role}</h3>
+              <p><strong>Company:</strong> {intern.company}</p>
+              <p><strong>Posted by:</strong> {intern.name}, {intern.designation}</p>
               <p><strong>Email:</strong> {intern.email}</p>
               <p><strong>Mobile:</strong> {intern.mobile}</p>
               <p><strong>Persons Required:</strong> {intern.personsRequired}</p>
-              <p><strong>Last Date to Apply:</strong> {intern.lastDate}</p>
-            </li>
+              <p><strong>Last Date:</strong> {intern.lastDate}</p>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
