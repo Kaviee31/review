@@ -4,12 +4,14 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import ChatWindow from "./ChatWindow";
+import "./StudentCourses.css";
 
 function StudentCourses() {
   const [courses, setCourses] = useState([]);
   const [registerNumber, setRegisterNumber] = useState("");
   const [studentName, setStudentName] = useState("");
-  const [selectedTeacherEmail, setSelectedTeacherEmail] = useState(null); // Changed to email
+  const [selectedTeacherEmail, setSelectedTeacherEmail] = useState(null);
+  const [darkMode, setDarkMode] = useState(false); // 🌗 Dark mode toggle
 
   useEffect(() => {
     const fetchRegisterNumber = async (user) => {
@@ -47,58 +49,61 @@ function StudentCourses() {
 
     fetchCourses();
   }, [registerNumber]);
+
   const handleCloseChat = () => {
     setSelectedTeacherEmail(null);
   };
+
   return (
-    <div>
-      <h2>Enrolled Courses for: {registerNumber || "Loading..."}</h2>
+    <div className={`student-courses-container ${darkMode ? "dark" : ""}`}>
+      <div className="header-bar">
+        <h2 className="header">Enrolled Courses for: <span>{registerNumber || "Loading..."}</span></h2>
+        <button className="toggle-mode" onClick={() => setDarkMode(!darkMode)}>
+          {darkMode ? "☀️ " : "🌙 "}
+        </button>
+      </div>
 
       {courses.length > 0 ? (
-        courses.map((course, index) => (
-          <div key={index} style={{ marginBottom: "20px" }}>
-            <h3>Course: {course.courseName} (Instructor: {course.teacherName})</h3>
-            <table border="1">
-              <thead>
-                <tr>
-                  <th>Course Name</th>
-                  <th>Teacher Name</th>
-                  <th>Register Number</th>
-                  <th>Assessment 1</th>
-                  <th>Assessment 2</th>
-                  <th>Assessment 3</th>
-                  <th>Total</th>
-                  <th>Contact</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{course.courseName}</td>
-                  <td>{course.teacherName}</td>
-                  <td>{registerNumber}</td>
-                  <td>{course.Assessment1}</td>
-                  <td>{course.Assessment2}</td>
-                  <td>{course.Assessment3}</td>
-                  <td>{course.Total}</td>
-                  <td>
-                    <img
-                      src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
-                      alt="Chat"
-                      width="20"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => setSelectedTeacherEmail(course.teacherEmail)} // Use teacher's email
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        ))
+        <div className="course-list">
+          {courses.map((course, index) => (
+            <div key={index} className="course-card fade-in">
+              <div className="course-header">
+                <h3>{course.courseName}</h3>
+                <button onClick={() => setSelectedTeacherEmail(course.teacherEmail)} className="chat-btn">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                    alt="Chat"
+                    width="20"
+                  />
+                </button>
+              </div>
+              <p className="instructor">Instructor: {course.teacherName}</p>
+              <table className="course-table">
+                <thead>
+                  <tr>
+                    <th>Assessment 1</th>
+                    <th>Assessment 2</th>
+                    <th>Assessment 3</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{course.Assessment1}</td>
+                    <td>{course.Assessment2}</td>
+                    <td>{course.Assessment3}</td>
+                    <td><strong>{course.Total}</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
       ) : (
-        <p>No enrolled courses yet.</p>
+        <p className="no-courses">No enrolled courses yet.</p>
       )}
 
-{selectedTeacherEmail && (
+      {selectedTeacherEmail && (
         <ChatWindow
           currentUser={registerNumber}
           contactUser={selectedTeacherEmail}
