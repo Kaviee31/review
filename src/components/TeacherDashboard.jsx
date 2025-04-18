@@ -81,6 +81,7 @@ function TeacherDashboard() {
 
   const handleLogout = async () => {
     try {
+      const auth = getAuth(); // Initialize auth here
       await auth.signOut();
       navigate("/"); // Redirect to the home or login page after logout
     } catch (error) {
@@ -95,7 +96,7 @@ function TeacherDashboard() {
       <nav className="teacher-sidebar">
   <div className="sidebar-title">📘</div>
   <div className="sidebar-links">
-  <button onClick={() => navigate("/student-dashboard")}>Dashboard</button>
+  <button onClick={() => navigate("/teacher-dashboard")}>Dashboard</button>
     <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
     <button onClick={() => navigate("/available-intern")}>Internships</button>
     <button onClick={handleLogout}>Logout</button>
