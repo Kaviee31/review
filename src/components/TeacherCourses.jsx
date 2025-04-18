@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ChatWindow from "./ChatWindow"; // Adjust path if needed
 import * as XLSX from "xlsx";
+import "./TeacherCourses.css"
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
