@@ -135,7 +135,7 @@ function TeacherCourses() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>
         Enrolled Students for{" "}
         {students.length > 0 ? students[0].courseName : "Loading..."}
@@ -211,7 +211,7 @@ function TeacherCourses() {
           )}
         </tbody>
       </table>
-
+      <div className="btncontainer">
       <button onClick={handleSaveAllMarks} style={{ marginTop: "10px" }}>
         Save All Marks
       </button>
@@ -227,6 +227,9 @@ function TeacherCourses() {
       >
         Download ExcelSheet
       </button>
+        
+      </div>
+      
       {selectedStudentRegisterNumber && (
         <ChatWindow
           currentUser={teacherEmail}
