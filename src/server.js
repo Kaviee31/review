@@ -35,7 +35,16 @@ const enrollmentSchema = new mongoose.Schema({
   Total: { type: Number, default: 0 },
 });
 
+const messageSchema = new mongoose.Schema({
+  content: String,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: 60 * 60 * 24, // 24 hours
+  }
+});
 
+const Message = mongoose.model("Message", messageSchema);
 
 
 const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
@@ -217,6 +226,30 @@ app.post("/api/study-plan/generate", async (req, res) => {
     res.status(500).json({ error: "Failed to generate study plan" });
   }
 });
+app.post("/post-message", async (req, res) => {
+  const { content } = req.body;
+  try {
+    const newMessage = new Message({ content });
+    await newMessage.save();
+    res.status(200).json({ message: "Message sent successfully!" });
+  } catch (error) {
+    console.error("Error posting message:", error);
+    res.status(500).json({ error: "Failed to send message" });
+  }
+});
+
+// API to fetch the latest message
+// API to fetch all messages (multiple announcements)
+app.get("/all-messages", async (req, res) => {
+  try {
+    const messages = await Message.find().sort({ createdAt: -1 }); // Get all messages, latest first
+    res.json(messages);
+  } catch (error) {
+    console.error("Error fetching all messages:", error);
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

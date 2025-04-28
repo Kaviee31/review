@@ -4,6 +4,8 @@ import { getAuth } from "firebase/auth";
 import SyllabusDisplay from './SyllabusDisplay';
 import './TeacherDashboard.css';
 import { generateStudyPlan } from '../api/generateStudyPlan';
+import axios from "axios";
+
 
 function TeacherDashboard() {
   const [courseName, setCourseName] = useState('');
@@ -14,7 +16,7 @@ function TeacherDashboard() {
   const [syllabus, setSyllabus] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSyllabus, setShowSyllabus] = useState(false);
-
+  const [announcement, setAnnouncement] = useState('');
   const navigate = useNavigate();
 
   const handleFileChange = (event) => {
@@ -35,31 +37,20 @@ function TeacherDashboard() {
   
       const token = await user.getIdToken();
   
-      // Create a more structured and clear custom prompt
-      const customPrompt = `
-        Please create a detailed study plan for the course "${courseName}", which runs from ${startDate} to ${endDate}.
-        The course will consist of ${hoursPerWeek} hours of study per week.
-        The syllabus topics are as follows:
-        ${syllabus}.
-        
-        The study plan should include:
-        1. A breakdown of the topics to be covered by week.
-        2. Recommended study methods or tips for each topic.
-        3. How to balance the topics over the available weeks.
-        4. Suggested assignments or exercises to reinforce learning.
-        5. Any additional resources or study tools to help with understanding.
+      const formData = {
+        syllabus,
+        courseName,
+        hoursPerWeek,
+        startDate,
+        endDate,
+      };
   
-        Be sure to distribute the hours evenly across the weeks and provide guidance on managing study time effectively.
-      `;
+      const studyPlan = await generateStudyPlan(formData, token); // pass formData and token
   
-      // Use the generateStudyPlan function for the custom prompt
-      const studyPlan = await generateStudyPlan(customPrompt); // pass custom prompt
       setSyllabus(studyPlan);
-
-      // Navigate to TeacherSyllabus page and pass the data
+  
       navigate('/teacher-syllabus', {
         state: {
-          prompt: customPrompt,
           formData: {
             course: courseName,
             startDate,
@@ -78,6 +69,7 @@ function TeacherDashboard() {
       setLoading(false);
     }
   };
+  
 
   const handleLogout = async () => {
     try {
@@ -90,82 +82,47 @@ function TeacherDashboard() {
   
   
   return (
-    
     <div className="app-container">
       <nav className="teacher-sidebar">
-  <div className="sidebar-title">📘</div>
-  <div className="sidebar-links">
-  <button onClick={() => navigate("/student-dashboard")}>Dashboard</button>
-    <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
-    <button onClick={() => navigate("/available-intern")}>Internships</button>
-    <button onClick={handleLogout}>Logout</button>
-  </div>
-</nav>
-
-
-
+        <div className="sidebar-title">📘</div>
+        <div className="sidebar-links">
+          <button onClick={() => navigate("/student-dashboard")}>Dashboard</button>
+          <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
+          <button onClick={() => navigate("/available-intern")}>Internships</button>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      </nav>
+  
+      {/* Dashboard Content Start */}
       <div className="dashboard-content">
-        <h2>Plan Your Schedule</h2>
-        <form onSubmit={handleSubmit}>
-          <label>Enter Course Name:</label>
+        <h2>Send Announcement to Students</h2>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              await axios.post('http://localhost:5000/post-message', { content: announcement });
+              alert("Message sent successfully!");
+              setAnnouncement('');
+            } catch (error) {
+              console.error("Error sending announcement:", error);
+              alert("Failed to send announcement.");
+            }
+          }}
+        >
           <input
             type="text"
-            placeholder="Course"
-            value={courseName}
-            onChange={(e) => setCourseName(e.target.value)}
+            placeholder="Type your message here..."
+            value={announcement}
+            onChange={(e) => setAnnouncement(e.target.value)}
             required
           />
-
-          <label>Enter Number of Hours per Week:</label>
-          <input
-            type="number"
-            placeholder="Hours"
-            min="1"
-            value={hoursPerWeek || ""}
-            onChange={(e) => {
-              const val = e.target.value ? parseInt(e.target.value) : "";
-              setHoursPerWeek(val);
-            }}
-            required
-          />
-
-          <label>Select Start Date:</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            required
-          />
-
-          <label>Select End Date:</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            required
-          />
-
-          <label>Enter Syllabus Content:</label>
-          <textarea
-            rows="5"
-            placeholder="Enter the syllabus topics..."
-            value={syllabus}
-            onChange={(e) => setSyllabus(e.target.value)}
-            required
-          />
-
-          <button type="submit" disabled={loading}>
-            {loading ? 'Generating...' : 'Submit'}
-          </button>
+          <button type="submit">Send</button>
         </form>
-
-        {showSyllabus && <SyllabusDisplay syllabus={syllabus} />}
-
-        
-        
       </div>
+      {/* Dashboard Content End */}
     </div>
   );
+  
 }
 
 export default TeacherDashboard;

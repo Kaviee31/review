@@ -3,11 +3,8 @@ import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-// Remove the old CSS import
-// import "./StudentDashboard.css";
-// Import the TeacherDashboard.css and rename classes accordingly
 import "./TeacherDashboard.css";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function StudentDashboard() {
   const [studentName, setStudentName] = useState("Guest");
@@ -24,6 +21,7 @@ function StudentDashboard() {
       teacherEmail: "pkssjr43@gmail.com"
     }
   ]);
+  const [announcement, setAnnouncement] = useState(null);  // State for the latest announcement
 
   const navigate = useNavigate();
 
@@ -43,9 +41,19 @@ function StudentDashboard() {
       }
     };
 
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/all-messages"); // replace with your backend URL
+        setAnnouncement(response.data);
+      } catch (error) {
+        console.error("Error fetching announcements:", error);
+      }
+    };
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchUserData(user);
+        fetchAnnouncements();
       }
     });
   }, []);
@@ -82,13 +90,23 @@ function StudentDashboard() {
         <div className="sidebar-links">
           <button onClick={() => navigate("/student-dashboard")}>Dashboard</button>
           <button onClick={() => navigate("/student-courses")}>My Courses</button>
-          
           <button onClick={handleLogout}>Logout</button>
         </div>
       </nav>
       <div className="dashboard-content">
         <h2>Welcome, {studentName}!</h2>
         <p>Register Number: {registerNumber}</p>
+
+        
+        {announcement && announcement.length > 0 && (
+  <div style={{ marginBottom: "20px" }}>
+    {announcement.map((item, index) => (
+      <p key={index} style={{ fontWeight: 'bold', color: 'black', fontSize: '18px' }}>
+        Announcement: {item.content}
+      </p>
+    ))}
+  </div>
+)}
 
         {courses.map((course, index) => (
           <div key={index} className="course-item">
@@ -102,8 +120,6 @@ function StudentDashboard() {
             </button>
           </div>
         ))}
-
-        
       </div>
     </div>
   );

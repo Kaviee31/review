@@ -1,16 +1,23 @@
+// TeacherCourses.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ChatWindow from "./ChatWindow"; // Adjust path if needed
 import * as XLSX from "xlsx";
+import { collection, query, orderBy, limit, where, getDocs } from "firebase/firestore";
+
+
+const UNSEEN_MESSAGE_ICON_URL = "https://cdn-icons-png.flaticon.com/512/134/134935.png"; // Example red chat bubble
+const SEEN_MESSAGE_ICON_URL = "https://cdn-icons-png.flaticon.com/512/2462/2462719.png"; // Original blue chat bubble
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
   const [teacherEmail, setTeacherEmail] = useState("");
   const [selectedStudentRegisterNumber, setSelectedStudentRegisterNumber] = useState(null); // Changed to registerNumber
+  const [unseenMessagesStatus, setUnseenMessagesStatus] = useState({}); // State to track unseen messages
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -83,25 +90,22 @@ function TeacherCourses() {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
+    const courseName = students.length > 0 ? students[0].courseName : "Course Name Not Available";
     doc.setFontSize(18);
-    doc.text("Student Marks Report", 14, 22);
+    doc.text(`${courseName} Marks Report`, 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
     const tableColumn = [
-      "Course",
-      "Student Name",
-      "Email",
-      "Assessment 1",
-      "Assessment 2",
-      "Assessment 3",
+      "Register Number",
+      "Assess1",
+      "Assess2",
+      "Assess3",
       "Total",
     ];
     const tableRows = [];
     students.forEach((student) => {
       const studentData = [
-        student.courseName,
-        student.studentName,
-        student.studentName, // Assuming studentName can be used as a placeholder if email isn't directly available here
+        student.registerNumber,
         student.marks1,
         student.marks2,
         student.marks3,
@@ -114,7 +118,7 @@ function TeacherCourses() {
       body: tableRows,
       startY: 30,
     });
-    doc.save("Student_Marks_Report.pdf");
+    doc.save(`${courseName.replace(/[^a-zA-Z0-9]/g, '_')}_Marks_Report.pdf`); // Sanitize filename
   };
 
   const handleDownloadSpreadsheet = () => {
@@ -125,12 +129,55 @@ function TeacherCourses() {
       "Assessment 3": student.marks3,
       "Total": student.marks4,
     })));
-    
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Student Marks");
 
     // Save the workbook as an Excel file
     XLSX.writeFile(workbook, "Student_Marks_Report.xlsx");
+  };
+
+  const hasUnseenMessages = async (studentRegisterNumber) => {
+    if (!teacherEmail || !studentRegisterNumber) return false;
+
+    const chatKey = teacherEmail < studentRegisterNumber
+      ? `${teacherEmail}_${studentRegisterNumber}`
+      : `${studentRegisterNumber}_${teacherEmail}`;
+
+    const messagesRef = collection(db, "chats", chatKey, "messages");
+    const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const lastMessage = querySnapshot.docs[0].data();
+      return lastMessage.senderId === studentRegisterNumber; // If the last message was sent by the student, it's unseen by the teacher
+    }
+
+    return false; // No messages in the chat
+  };
+
+  useEffect(() => {
+    const fetchUnseenStatuses = async () => {
+      const statuses = {};
+      for (const student of students) {
+        const hasUnseen = await hasUnseenMessages(student.registerNumber);
+        statuses[student.registerNumber] = hasUnseen;
+      }
+      setUnseenMessagesStatus(statuses);
+    };
+
+    if (students.length > 0) {
+      fetchUnseenStatuses();
+    }
+  }, [students, teacherEmail]);
+
+  const openChatWindow = (studentRegisterNumber) => {
+    setSelectedStudentRegisterNumber(studentRegisterNumber);
+    // Mark messages as seen when the chat window opens
+    setUnseenMessagesStatus(prevState => ({
+      ...prevState,
+      [studentRegisterNumber]: false,
+    }));
   };
 
   return (
@@ -194,11 +241,15 @@ function TeacherCourses() {
                 </td>
                 <td>
                   <img
-                    src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                    src={
+                      unseenMessagesStatus[student.registerNumber]
+                        ? UNSEEN_MESSAGE_ICON_URL
+                        : SEEN_MESSAGE_ICON_URL
+                    }
                     alt="Chat Bubble"
                     width="20"
                     style={{ cursor: "pointer", verticalAlign: "middle" }}
-                    onClick={() => setSelectedStudentRegisterNumber(student.registerNumber)} // Use student's registerNumber
+                    onClick={() => openChatWindow(student.registerNumber)} // Use student's registerNumber
                   />
                 </td>
               </tr>
@@ -226,6 +277,7 @@ function TeacherCourses() {
       >
         Download ExcelSheet
       </button>
+      
       {selectedStudentRegisterNumber && (
         <ChatWindow
           currentUser={teacherEmail}
