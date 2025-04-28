@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth"; 
-import SyllabusDisplay from './SyllabusDisplay';
 import './TeacherDashboard.css';
 import { generateStudyPlan } from '../api/generateStudyPlan';
 import axios from "axios";
@@ -73,6 +72,7 @@ function TeacherDashboard() {
 
   const handleLogout = async () => {
     try {
+      const auth = getAuth(); // Initialize auth here
       await auth.signOut();
       navigate("/"); // Redirect to the home or login page after logout
     } catch (error) {
@@ -84,16 +84,17 @@ function TeacherDashboard() {
   return (
     <div className="app-container">
       <nav className="teacher-sidebar">
-        <div className="sidebar-title">📘</div>
-        <div className="sidebar-links">
-          <button onClick={() => navigate("/student-dashboard")}>Dashboard</button>
-          <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
-          <button onClick={() => navigate("/available-intern")}>Internships</button>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      </nav>
-  
-      {/* Dashboard Content Start */}
+  <div className="sidebar-title">📘</div>
+  <div className="sidebar-links">
+  <button onClick={() => navigate("/teacher-dashboard")}>Dashboard</button>
+    <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
+    <button onClick={() => navigate("/available-intern")}>Internships</button>
+    <button onClick={handleLogout}>Logout</button>
+  </div>
+</nav>
+
+
+
       <div className="dashboard-content">
         <h2>Send Announcement to Students</h2>
         <form

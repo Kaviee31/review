@@ -7,11 +7,6 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ChatWindow from "./ChatWindow"; // Adjust path if needed
 import * as XLSX from "xlsx";
-import { collection, query, orderBy, limit, where, getDocs } from "firebase/firestore";
-
-
-const UNSEEN_MESSAGE_ICON_URL = "https://cdn-icons-png.flaticon.com/512/134/134935.png"; // Example red chat bubble
-const SEEN_MESSAGE_ICON_URL = "https://cdn-icons-png.flaticon.com/512/2462/2462719.png"; // Original blue chat bubble
 
 function TeacherCourses() {
   const [students, setStudents] = useState([]);
@@ -181,7 +176,7 @@ function TeacherCourses() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>
         Enrolled Students for{" "}
         {students.length > 0 ? students[0].courseName : "Loading..."}
@@ -261,7 +256,7 @@ function TeacherCourses() {
           )}
         </tbody>
       </table>
-
+      <div className="btncontainer">
       <button onClick={handleSaveAllMarks} style={{ marginTop: "10px" }}>
         Save All Marks
       </button>
@@ -277,7 +272,6 @@ function TeacherCourses() {
       >
         Download ExcelSheet
       </button>
-      
       {selectedStudentRegisterNumber && (
         <ChatWindow
           currentUser={teacherEmail}

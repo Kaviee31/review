@@ -1,0 +1,33 @@
+/* DashboardLayout.css */
+.dashboard-layout {
+    display: flex;
+  }
+  
+  .sidebar {
+    width: 220px;
+    background-color: #1e3a8a;
+    color: white;
+    padding: 1rem;
+  }
+  
+  .sidebar button {
+    margin: 10px 0;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .sidebar button:hover {
+    background-color: #2563eb;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 2rem;
+    background-color: #f3f4f6;
+  }
+  

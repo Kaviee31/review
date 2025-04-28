@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import "./Sign.css";
 
@@ -11,41 +11,81 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [profession, setProfession] = useState("Student");
   const [registerNumber, setRegisterNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const professions = ["Student", "Teacher", "Alumni"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    // Password Validation
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
+
       const userData = {
         username,
         email,
         profession,
       };
-  
+
       if (profession === "Student") {
         userData.registerNumber = registerNumber;
       }
-  
+
+      // Save user data to Firestore
       await setDoc(doc(db, "users", user.uid), userData);
-  
-      alert("User registered successfully!");
-      navigate("/", { replace: true }); // ✅ Redirect here
+
+      // Send email verification
+      await sendEmailVerification(user);
+
+      // Clear form fields after successful registration
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setProfession("Student");
+      setRegisterNumber("");
+
+      // Redirect based on profession
+      if (profession === "Teacher") {
+        navigate("/teacher-dashboard", { replace: true });
+      } else if (profession === "Alumni") {
+        navigate("/alumni-dashboard", { replace: true });
+      } else {
+        navigate("/student-dashboard", { replace: true });
+      }
+      
+      alert("User registered successfully! Please check your email to verify your account.");
+
     } catch (error) {
-      console.error("Error signing up:", error);
-      alert(error.message);
+      if (error.code === 'auth/email-already-in-use') {
+        setError("The email is already registered.");
+      } else if (error.code === 'auth/weak-password') {
+        setError("Password should be at least 6 characters.");
+      } else {
+        setError(error.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   return (
     <div className="signup-container">
       <form className="signup-form" onSubmit={handleSubmit}>
         <h2>Create Account</h2>
+
+        {error && <div className="error-message">{error}</div>}
 
         <label>Username</label>
         <input
@@ -107,7 +147,9 @@ function Signup() {
           </>
         )}
 
-        <button type="submit">Register</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Registering..." : "Register"}
+        </button>
 
         <p>
           Already have an account? <Link to="/">Log in</Link>
