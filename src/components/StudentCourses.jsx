@@ -5,12 +5,17 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import ChatWindow from "./ChatWindow";
+import { collection, query, orderBy, limit, where, getDocs } from "firebase/firestore";
+
+const UNSEEN_MESSAGE_ICON_URL = "https://cdn-icons-png.flaticon.com/512/134/134935.png"; // Example red chat bubble
+const SEEN_MESSAGE_ICON_URL = "https://cdn-icons-png.flaticon.com/512/2462/2462719.png"; // Original blue chat bubble
 
 function StudentCourses() {
   const [courses, setCourses] = useState([]);
   const [registerNumber, setRegisterNumber] = useState("");
   const [studentName, setStudentName] = useState("");
   const [selectedTeacherEmail, setSelectedTeacherEmail] = useState(null); // Changed to email
+  const [unseenMessagesStatus, setUnseenMessagesStatus] = useState({}); // State for unseen messages
 
   useEffect(() => {
     const fetchRegisterNumber = async (user) => {
@@ -52,19 +57,54 @@ function StudentCourses() {
   const handleCloseChat = () => {
     setSelectedTeacherEmail(null);
   };
-  return (
-    <div className={`student-courses-container-wrapper ${darkMode ? "dark" : ""}`}>
-      <div className="student-courses-layout">
-        <div className="student-courses-container">
-          <div className="header-bar">
-            <h2 className="header">
-              Enrolled Courses for: <span>{registerNumber || "Loading..."}</span>
-            </h2>
-            <button className="toggle-mode" onClick={() => setDarkMode(!darkMode)}>
-              {darkMode ? "☀️ " : "🌙 "}
-            </button>
-          </div>
 
+  const hasUnseenMessages = async (teacherEmail) => {
+    if (!registerNumber || !teacherEmail) return false;
+
+    const chatKey = registerNumber < teacherEmail
+      ? `${registerNumber}_${teacherEmail}`
+      : `${teacherEmail}_${registerNumber}`;
+
+    const messagesRef = collection(db, "chats", chatKey, "messages");
+    const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const lastMessage = querySnapshot.docs[0].data();
+      return lastMessage.senderId === teacherEmail; // If the last message was sent by the teacher, it's unseen by the student
+    }
+
+    return false; // No messages in the chat
+  };
+
+  useEffect(() => {
+    const fetchUnseenStatuses = async () => {
+      const statuses = {};
+      for (const course of courses) {
+        const hasUnseen = await hasUnseenMessages(course.teacherEmail);
+        statuses[course.teacherEmail] = hasUnseen;
+      }
+      setUnseenMessagesStatus(statuses);
+    };
+
+    if (courses.length > 0) {
+      fetchUnseenStatuses();
+    }
+  }, [courses, registerNumber]);
+
+  const openChatWindow = (teacherEmail) => {
+    setSelectedTeacherEmail(teacherEmail);
+    // Mark messages as seen when the chat window opens
+    setUnseenMessagesStatus(prevState => ({
+      ...prevState,
+      [teacherEmail]: false,
+    }));
+  };
+
+  return (
+    <div>
+      <h2>Enrolled Courses for: {registerNumber || "Loading..."}</h2>
+  
       {courses.length > 0 ? (
         courses.map((course, index) => (
           <div key={index} style={{ marginBottom: "20px" }}>
@@ -93,11 +133,15 @@ function StudentCourses() {
                   <td>{course.Total}</td>
                   <td>
                     <img
-                      src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png"
+                      src={
+                        unseenMessagesStatus[course.teacherEmail]
+                          ? UNSEEN_MESSAGE_ICON_URL
+                          : SEEN_MESSAGE_ICON_URL
+                      }
                       alt="Chat"
                       width="20"
                       style={{ cursor: "pointer" }}
-                      onClick={() => setSelectedTeacherEmail(course.teacherEmail)} // Use teacher's email
+                      onClick={() => openChatWindow(course.teacherEmail)}
                     />
                   </td>
                 </tr>
@@ -106,10 +150,11 @@ function StudentCourses() {
           </div>
         ))
       ) : (
-        <p>No enrolled courses yet.</p>
+        <p>Loading courses...</p>
       )}
-
-{selectedTeacherEmail && (
+  
+      {/* Move ChatWindow outside the map */}
+      {selectedTeacherEmail && (
         <ChatWindow
           currentUser={registerNumber}
           contactUser={selectedTeacherEmail}
@@ -118,6 +163,7 @@ function StudentCourses() {
       )}
     </div>
   );
+  
 }
 
 export default StudentCourses;
