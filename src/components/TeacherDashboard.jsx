@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth"; 
 import './TeacherDashboard.css';
 import { generateStudyPlan } from '../api/generateStudyPlan';
-import axios from "axios";
-
+import emailjs from '@emailjs/browser';
 
 function TeacherDashboard() {
   const [courseName, setCourseName] = useState('');
@@ -18,12 +17,21 @@ function TeacherDashboard() {
   const [announcement, setAnnouncement] = useState('');
   const navigate = useNavigate();
 
+  const SERVICE_ID = import.meta.env.VITE_REACT_APP_SERVICE_ID;
+  const TEMPLATE_ID = import.meta.env.VITE_REACT_APP_TEMPLATE_ID;
+  const PUBLIC_KEY = import.meta.env.VITE_REACT_APP_EMAILJS_PUBLICKEY;
+
+  console.log('SERVICE_ID:', SERVICE_ID);
+  console.log('TEMPLATE_ID:', TEMPLATE_ID);
+  console.log('PUBLIC_KEY:', PUBLIC_KEY);
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedFile(file);
     }
   };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -44,8 +52,7 @@ function TeacherDashboard() {
         endDate,
       };
   
-      const studyPlan = await generateStudyPlan(formData, token); // pass formData and token
-  
+      const studyPlan = await generateStudyPlan(formData, token);
       setSyllabus(studyPlan);
   
       navigate('/teacher-syllabus', {
@@ -60,7 +67,6 @@ function TeacherDashboard() {
           },
         },
       });
-  
     } catch (error) {
       console.error('Error generating syllabus:', error);
       setSyllabus('Error generating syllabus. Please try again.');
@@ -68,48 +74,56 @@ function TeacherDashboard() {
       setLoading(false);
     }
   };
-  
 
   const handleLogout = async () => {
     try {
-      const auth = getAuth(); // Initialize auth here
+      const auth = getAuth();
       await auth.signOut();
-      navigate("/"); // Redirect to the home or login page after logout
+      navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
+
+  const handleAnnouncementSubmit = async (e) => {
+    e.preventDefault();
   
+    try {
+      const result = await emailjs.send(
+        'service_7hxdr7i',
+        'template_8p5k99j',
+        {
+          message: announcement,
+          to_email: 'kaviee3112@gmail.com', // static for now, later can be looped
+        },
+        'CALj7UXHXdZxyYqka',
+      );
   
+      console.log('Email sent:', result);
+      alert("Announcement sent via Email!");
+      setAnnouncement('');
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send announcement.");
+    }
+  };
+  
+
   return (
     <div className="app-container">
       <nav className="teacher-sidebar">
-  <div className="sidebar-title">📘</div>
-  <div className="sidebar-links">
-  <button onClick={() => navigate("/teacher-dashboard")}>Dashboard</button>
-    <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
-    <button onClick={() => navigate("/available-intern")}>Internships</button>
-    <button onClick={handleLogout}>Logout</button>
-  </div>
-</nav>
-
-
+        <div className="sidebar-title">📘</div>
+        <div className="sidebar-links">
+          <button onClick={() => navigate("/teacher-dashboard")}>Dashboard</button>
+          <button onClick={() => navigate("/teacher-courses")}>Enrolled Students</button>
+          <button onClick={() => navigate("/available-intern")}>Internships</button>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      </nav>
 
       <div className="dashboard-content">
         <h2>Send Announcement to Students</h2>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              await axios.post('http://localhost:5000/post-message', { content: announcement });
-              alert("Message sent successfully!");
-              setAnnouncement('');
-            } catch (error) {
-              console.error("Error sending announcement:", error);
-              alert("Failed to send announcement.");
-            }
-          }}
-        >
+        <form onSubmit={handleAnnouncementSubmit}>
           <input
             type="text"
             placeholder="Type your message here..."
@@ -117,13 +131,12 @@ function TeacherDashboard() {
             onChange={(e) => setAnnouncement(e.target.value)}
             required
           />
-          <button type="submit">Send</button>
+          <button type="submit">Send Email</button>
         </form>
+
       </div>
-      {/* Dashboard Content End */}
     </div>
   );
-  
 }
 
 export default TeacherDashboard;

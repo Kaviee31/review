@@ -118,7 +118,7 @@ function StudentCourses() {
                   <th>Assessment 1</th>
                   <th>Assessment 2</th>
                   <th>Assessment 3</th>
-                  <th>Total</th>
+                  <th>Average</th>
                   <th>Contact</th>
                 </tr>
               </thead>

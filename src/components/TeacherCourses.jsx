@@ -38,7 +38,7 @@ function TeacherCourses() {
             marks1: student.Assessment1 || "",
             marks2: student.Assessment2 || "",
             marks3: student.Assessment3 || "",
-            marks4: student.Total || "",
+            marks4: Math.ceil( (student.Assessment1+student.Assessment2+student.Assessment3)/3), //|| student.Total,
             extraColumn: student.Contact || "",
             registerNumber: student.registerNumber,
           }));
@@ -195,7 +195,7 @@ function TeacherCourses() {
             <th>Assessment 1</th>
             <th>Assessment 2</th>
             <th>Assessment 3</th>
-            <th>Total</th>
+            <th>Average</th>
             <th>Contact</th>
           </tr>
         </thead>
@@ -233,11 +233,9 @@ function TeacherCourses() {
                 </td>
                 <td>
                   <input
-                    type="number"
+                   
                     value={student.marks4}
-                    onChange={(e) =>
-                      handleMarkChange(index, "marks4", e.target.value)
-                    }
+                    
                   />
                 </td>
                 <td>
