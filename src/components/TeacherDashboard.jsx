@@ -4,6 +4,10 @@ import { getAuth } from "firebase/auth";
 import './TeacherDashboard.css';
 import { generateStudyPlan } from '../api/generateStudyPlan';
 import emailjs from '@emailjs/browser';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';  // If not already imported
+
 
 function TeacherDashboard() {
   const [courseName, setCourseName] = useState('');
@@ -17,13 +21,7 @@ function TeacherDashboard() {
   const [announcement, setAnnouncement] = useState('');
   const navigate = useNavigate();
 
-  const SERVICE_ID = import.meta.env.VITE_REACT_APP_SERVICE_ID;
-  const TEMPLATE_ID = import.meta.env.VITE_REACT_APP_TEMPLATE_ID;
-  const PUBLIC_KEY = import.meta.env.VITE_REACT_APP_EMAILJS_PUBLICKEY;
 
-  console.log('SERVICE_ID:', SERVICE_ID);
-  console.log('TEMPLATE_ID:', TEMPLATE_ID);
-  console.log('PUBLIC_KEY:', PUBLIC_KEY);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -88,25 +86,48 @@ function TeacherDashboard() {
   const handleAnnouncementSubmit = async (e) => {
     e.preventDefault();
   
+    if (!announcement) {
+      toast.error("Announcement message cannot be empty");
+      return;
+    }
+  
     try {
-      const result = await emailjs.send(
-        'service_7hxdr7i',
-        'template_8p5k99j',
-        {
-          message: announcement,
-          to_email: 'kaviee3112@gmail.com', // static for now, later can be looped
-        },
-        'CALj7UXHXdZxyYqka',
+      const response = await axios.get("http://localhost:5000/all-students");
+      const students = response.data;
+  
+      // Collect all valid BCC emails
+      const bccEmails = students
+        .filter((student) => student.registerNumber)
+        .map((student) => `${student.registerNumber}@student.annauniv.edu`);
+  
+      if (bccEmails.length === 0) {
+        toast.error("No valid student emails found.");
+        return;
+      }
+  
+      const templateParams = {
+        //to_email: "kaviee3112@gmail.com", // default recipient
+        to_name: "Student", // or your preferred name
+        message: announcement,
+        bcc: bccEmails.join(","),
+      };
+  
+      await emailjs.send(
+        'service_bsbrxxs',
+        'template_8snwbzk',
+        templateParams,
+        'KG_9zM7DeZhRC2vTX'
       );
   
-      console.log('Email sent:', result);
-      alert("Announcement sent via Email!");
-      setAnnouncement('');
+      toast.success("Announcement sent via BCC!");
+      setAnnouncement("");
     } catch (error) {
-      console.error("Error sending email:", error);
-      alert("Failed to send announcement.");
+      console.error("Error sending announcement:", error);
+      toast.error("Failed to send announcement");
     }
   };
+  
+  
   
 
   return (

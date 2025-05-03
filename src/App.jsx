@@ -1,4 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import TeacherDashboard from "./components/TeacherDashboard";
@@ -19,10 +22,11 @@ function App() {
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/student-courses" element={<StudentCourses />} />
         <Route path="/teacher-courses" element={<TeacherCourses />} />
-        <Route path="/teacher-syllabus" element={<TeacherSyllabus/>} />
+        <Route path="/teacher-syllabus" element={<TeacherSyllabus />} />
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/available-intern" element={<AvailableIntern />} />
       </Routes>
+      <ToastContainer /> {/* ✅ Placed outside Routes */}
     </Router>
   );
 }

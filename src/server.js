@@ -2,30 +2,29 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
+import dotenv from "dotenv"; // Import dotenv
 import fetch from 'node-fetch';
 import studyPlanRoutes from "./routes/studyPlan.js";
 
-
-
 // Load environment variables
-dotenv.config();
+dotenv.config(); // Make sure to load .env variables
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
 app.use("/api/study-plan", studyPlanRoutes);
+
+
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect("mongodb+srv://ptejavenkatsai:xMHDj6lA8npKaaV6@fullstack.mwxthj0.mongodb.net/?retryWrites=true&w=majority&appName=FullStack")
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
-
 
 // Define Schema
 const enrollmentSchema = new mongoose.Schema({
   studentName: String,
-  registerNumber: String, // ✅ replaced studentEmail with registerNumber
+  registerNumber: String, 
   courseName: String,
   teacherName: String,
   teacherEmail: String,
@@ -37,40 +36,27 @@ const enrollmentSchema = new mongoose.Schema({
 
 const messageSchema = new mongoose.Schema({
   content: String,
-  createdAt: {
-    type: Date,
-    default: Date.now,
-    expires: 60 * 60 * 24, // 24 hours
-  }
+  createdAt: { type: Date, default: Date.now, expires: 60 * 60 * 24 },
 });
 
 const Message = mongoose.model("Message", messageSchema);
-
-
 const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
 
 // API to handle enrollment
 app.post("/enroll", async (req, res) => {
   const { studentName, registerNumber, courseName, teacherName, teacherEmail } = req.body;
-
-
   try {
     const existingEnrollment = await Enrollment.findOne({ registerNumber, courseName });
     if (existingEnrollment) {
       return res.status(400).json({ error: "Already enrolled!" });
     }
-
     const newEnrollment = new Enrollment({ studentName, registerNumber, courseName, teacherName, teacherEmail });
-
-
     await newEnrollment.save();
-
     res.status(200).json({ message: "Enrollment successful!" });
   } catch (error) {
     res.status(500).json({ error: "Failed to enroll" });
   }
 });
-
 
 // API to get enrolled courses for a student
 app.get("/student-courses/:registerNumber", async (req, res) => {
@@ -82,6 +68,19 @@ app.get("/student-courses/:registerNumber", async (req, res) => {
   }
 });
 
+// API to get all unique students
+app.get("/all-students", async (req, res) => {
+  try {
+    const students = await Enrollment.aggregate([
+      { $group: { _id: "$registerNumber", studentName: { $first: "$studentName" } } },
+      { $project: { _id: 0, registerNumber: "$_id", studentName: 1, email: { $concat: ["$_id", "@student.annauniv.edu"] } } }
+    ]);
+    res.json(students);
+  } catch (error) {
+    console.error("Error fetching all students:", error);
+    res.status(500).json({ error: "Failed to fetch students" });
+  }
+});
 
 // API to get students enrolled in a specific teacher's course
 app.get("/teacher-courses/:teacherEmail", async (req, res) => {
@@ -93,12 +92,11 @@ app.get("/teacher-courses/:teacherEmail", async (req, res) => {
   }
 });
 
-
+// Update marks API
 app.post("/update-marks", async (req, res) => {
   try {
     const { students } = req.body;
     console.log("Received Marks Update:", students);
-
     for (let student of students) {
       const updatedStudent = await Enrollment.findOneAndUpdate(
         { registerNumber: student.registerNumber, courseName: student.courseName },
@@ -112,10 +110,8 @@ app.post("/update-marks", async (req, res) => {
         },
         { new: true, upsert: true }
       );
-
       console.log("Updated Student:", updatedStudent);
     }
-
     res.json({ message: "Marks updated successfully!" });
   } catch (error) {
     console.error("Error updating marks:", error);
@@ -123,68 +119,7 @@ app.post("/update-marks", async (req, res) => {
   }
 });
 
-
-// app.post("/api/study-plan/generate", async (req, res) => {
-//   const { courseName, hoursPerWeek, startDate, endDate, syllabus } = req.body;
-
-//   if (!syllabus || !hoursPerWeek || !startDate || !endDate) {
-//     return res.status(400).json({ error: "Missing required fields" });
-//   }
-
-//   try {
-//     const prompt = `
-//       You are a study planner bot. Given the course syllabus and time frame, generate a weekly study plan.
-
-//       Course: ${courseName}
-//       Study hours per week: ${hoursPerWeek}
-//       Duration: ${startDate} to ${endDate}
-
-//       Syllabus:
-//       ${syllabus}
-
-//       Format the response as a week-wise plan with clearly structured topics.
-//     `;
-
-//     const response = await openai.createChatCompletion({
-//       model: "gpt-3.5-turbo",
-//       messages: [{ role: "user", content: prompt }],
-//     });
-
-//     const studyPlan = response.data.choices[0].message.content;
-
-//     res.json({ syllabus: studyPlan });
-//   } catch (error) {
-//     console.error("OpenAI Error:", error.message);
-//     res.status(500).json({ error: "Failed to generate study plan" });
-//   }
-// });
-
-// app.post("/api/study-plan/generate", async (req, res) => {
-//   const { syllabus, courseName, hoursPerWeek, startDate, endDate } = req.body;
-
-//   const prompt = `Create a detailed weekly study plan for the course "${courseName}" based on the following syllabus: ${syllabus}. The student can study ${hoursPerWeek} hours per week from ${startDate} to ${endDate}.`;
-
-//   try {
-//     const response = await axios.post(
-//       "https://api-inference.huggingface.co/models/google/flan-t5-base", // or another model
-//       { inputs: prompt },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${process.env.HF_API_KEY}`,
-//         },
-//       }
-//     );
-
-//     const result = response.data;
-//     const plan = result?.[0]?.generated_text || "No response generated.";
-//     res.json({ syllabus: plan });
-//   } catch (err) {
-//     console.error("Error calling Hugging Face API:", err.response?.data || err.message);
-//     res.status(500).json({ error: "Failed to generate syllabus." });
-//   }
-// });
-
-
+// API to generate a study plan
 app.post("/api/study-plan/generate", async (req, res) => {
   const { syllabus, courseName, hoursPerWeek, startDate, endDate } = req.body;
 
@@ -206,7 +141,6 @@ app.post("/api/study-plan/generate", async (req, res) => {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-        // 🔁 Replace this
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ inputs: prompt }),
@@ -226,6 +160,8 @@ app.post("/api/study-plan/generate", async (req, res) => {
     res.status(500).json({ error: "Failed to generate study plan" });
   }
 });
+
+// API to post a message
 app.post("/post-message", async (req, res) => {
   const { content } = req.body;
   try {
@@ -238,18 +174,16 @@ app.post("/post-message", async (req, res) => {
   }
 });
 
-// API to fetch the latest message
-// API to fetch all messages (multiple announcements)
+// Fetch all messages
 app.get("/all-messages", async (req, res) => {
   try {
-    const messages = await Message.find().sort({ createdAt: -1 }); // Get all messages, latest first
+    const messages = await Message.find().sort({ createdAt: -1 });
     res.json(messages);
   } catch (error) {
     console.error("Error fetching all messages:", error);
     res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
