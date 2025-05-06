@@ -43,7 +43,7 @@ function StudentDashboard() {
 
     const fetchAnnouncements = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/all-messages"); // replace with your backend URL
+        const response = await axios.get("https://review-dashboard.onrender.com/all-messages"); // replace with your backend URL
         setAnnouncement(response.data);
       } catch (error) {
         console.error("Error fetching announcements:", error);
@@ -60,7 +60,7 @@ function StudentDashboard() {
 
   const handleEnroll = async (courseName, teacherName, teacherEmail) => {
     try {
-      await axios.post("http://localhost:5000/enroll", {
+      await axios.post("https://review-dashboard.onrender.com/enroll", {
         studentName,
         registerNumber,
         courseName,
