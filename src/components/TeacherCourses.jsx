@@ -31,7 +31,7 @@ function TeacherCourses() {
   const fetchStudents = () => {
     if (teacherEmail) {
       axios
-        .get(`http://localhost:5000/teacher-courses/${teacherEmail}`)
+        .get(`https://review-dashboard.onrender.com/teacher-courses/${teacherEmail}`)
         .then((res) => {
           const updatedStudents = res.data.map((student) => ({
             ...student,
@@ -81,7 +81,7 @@ function TeacherCourses() {
     };
     console.log("Sending Marks Data:", payload);
     axios
-      .post("http://localhost:5000/update-marks", payload)
+      .post("https://review-dashboard.onrender.com/update-marks", payload)
       .then(() => {
         alert("Marks saved successfully!");
         console.log("Marks saved in backend!");

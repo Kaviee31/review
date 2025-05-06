@@ -43,7 +43,7 @@ function StudentCourses() {
     const fetchCourses = async () => {
       if (registerNumber) {
         try {
-          const response = await axios.get(`https://review-dashboard.onrender.com//student-courses/${registerNumber}`);
+          const response = await axios.get(`https://review-dashboard.onrender.com/student-courses/${registerNumber}`);
           setCourses(response.data);
         } catch (error) {
           console.error("Error fetching student courses:", error);

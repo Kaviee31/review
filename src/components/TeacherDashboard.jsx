@@ -92,7 +92,7 @@ function TeacherDashboard() {
     }
   
     try {
-      const response = await axios.get("https://review-dashboard.onrender.com//all-students");
+      const response = await axios.get("https://review-dashboard.onrender.com/all-students");
       const students = response.data;
   
       // Collect all valid BCC emails
