@@ -15,9 +15,11 @@ app.use(bodyParser.json());
 
 app.use("/api/study-plan", studyPlanRoutes);
 
+const mongoURI = process.env.MONGO_URI;
+
 
 // Connect to MongoDB
-mongoose.connect("mongodb+srv://ptejavenkatsai:xMHDj6lA8npKaaV6@fullstack.mwxthj0.mongodb.net/?retryWrites=true&w=majority&appName=FullStack")
+mongoose.connect(mongoURI)
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
 
